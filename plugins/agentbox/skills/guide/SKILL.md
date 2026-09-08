@@ -1,13 +1,13 @@
 ---
 name: guide
-description: Interactive concierge and router for agentbox: helps you pick the right diagram, orchestration loop, or verification tool for your task. Invoke when asking 'what can lirbox do', 'how do I use lirbox', 'which skill should I use', or looking for guidance across the lirbox suite.
+description: Interactive concierge and router for agentbox: helps you pick the right diagram, orchestration loop, or verification tool for your task. Invoke when asking 'what can agentbox do', 'how do I use agentbox', 'which skill should I use', or looking for guidance across the agentbox suite.
 tools: Ask
 color: green
 ---
 
-# lirbox Guide — Concierge & Router
+# agentbox Guide — Concierge & Router
 
-Welcome to **lirbox**! lirbox provides 19 specialized skills and 10 agents to visualize architecture, orchestrate delivery, run evaluations, and record feedback.
+Welcome to **agentbox**! agentbox provides 19 specialized skills and 10 agents to visualize architecture, orchestrate delivery, run evaluations, and record feedback.
 
 ## 4 Core Domains
 
@@ -34,7 +34,7 @@ Welcome to **lirbox**! lirbox provides 19 specialized skills and 10 agents to vi
    - `skill-lint`: Structural linting and standards for Claude skills.
 
 4. 💬 **Feedback**
-   - `feedback`: File scrubbed, whetstone-ready issues to `liemle3893/lirbox`.
+   - `feedback`: File scrubbed, whetstone-ready issues to `duythien0912/agentbox`.
 
 ## Interactive Routing Guide
 

@@ -82,7 +82,7 @@ HTML-escape `<`, `>`, `&`. Keep excerpts to the load-bearing lines; use `// …`
 The `<details>` element gives native expand/collapse — **no JavaScript**.
 
 ## Honesty rules (do not violate)
-- Keep the `<style>` block byte-for-byte; it is the design system (shared with the other lirbox skills).
+- Keep the `<style>` block byte-for-byte; it is the design system (shared with the other agentbox skills).
 - Every `loc` (file:line) must be real and the line range must actually contain the code shown. If a step shows a helper that is defined elsewhere, cite **that helper's** line range — not the enclosing function's entry lines.
 - At most one `step critical` and at most one `node critical` in the whole document (see "Scope").
 - Every excerpt is a faithful (optionally trimmed) copy of the real source — never paraphrased into code that doesn't exist. Eliding with `// …` is fine; inventing is not.

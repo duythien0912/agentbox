@@ -29,8 +29,8 @@ ok(!!descMatch, 'frontmatter declares a description');
 const desc = descMatch ? descMatch[1].replace(/\n\s+/g, ' ') : '';
 
 ok(desc.includes('Interactive concierge'), 'description contains "Interactive concierge"');
-ok(desc.includes('what can lirbox do'), 'description contains trigger "what can lirbox do"');
-ok(desc.includes('how do I use lirbox'), 'description contains trigger "how do I use lirbox"');
+ok(desc.includes('what can agentbox do'), 'description contains trigger "what can agentbox do"');
+ok(desc.includes('how do I use agentbox'), 'description contains trigger "how do I use agentbox"');
 ok(desc.includes('which skill should I use'), 'description contains trigger "which skill should I use"');
 
 // 3. Word count < 500 words

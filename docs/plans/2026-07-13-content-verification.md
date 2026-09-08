@@ -13,7 +13,7 @@
 - Work on branch `design/content-verification` (spec + plan committed there).
 - **Do NOT hand-edit any conductor skill file** (`SKILL.md`, `scripts/*`) — the whole point is that the change flows through `feedback/conductor.jsonl` → whetstone. This plan's ONLY repo write is appending one line to that backlog.
 - The item is ONE JSON object on ONE line, schema `{id, type, text}`, valid JSON, newline-terminated. Append-only; do not touch other lines.
-- Commit identity enforced by `.githooks/pre-commit` (author `liemle3893 <33980597+liemle3893@users.noreply.github.com>`).
+- Commit identity enforced by `.githooks/pre-commit` (author `duythien0912 <33980597+duythien0912@users.noreply.github.com>`).
 - Never commit runtime artifacts (`.workflows/`, `.worktrees/`, `.improve/`).
 
 ---
@@ -53,8 +53,8 @@ git commit -m "feedback(conductor): file content-verification (prose-lint.mjs + 
 
 The item above is the deliverable of this plan. Implementing it is a **whetstone run**, identical in shape to the two runs already done this session (#24, #25). It is interactive (one human confirmation) and is driven via the `agentbox:whetstone` skill, not authored as TDD steps here:
 
-1. **Run** `agentbox:whetstone conductor`. Setup will: read the backlog → RED-draft the `content-verification` check via the `agentbox-test-writer` agent (it authors the fixtures + the runnable check) → discrimination gate (`check-baseline.cjs` must say `DISCRIMINATING`) → measure the floor (`evals/run.mjs` green) → **confirm once** (human) → freeze → run the loop (the fixer builds `prose-lint.mjs` + the SKILL.md probe companion, kept iff floor + frozen check + surface-lock hold) → open a PR (never a merge; switch to the `liemle3893` gh account for PR creation, then switch back).
-2. **After the PR merges** + `/plugin marketplace update lirbox`: prove PIECE B behaviorally with a `claude -p` A/B — a content-shaped conductor goal proposes a `prose-lint` criterion; a pure-backend goal does not. (This is the probe's real acceptance; the frozen check only gated PIECE A.)
+1. **Run** `agentbox:whetstone conductor`. Setup will: read the backlog → RED-draft the `content-verification` check via the `agentbox-test-writer` agent (it authors the fixtures + the runnable check) → discrimination gate (`check-baseline.cjs` must say `DISCRIMINATING`) → measure the floor (`evals/run.mjs` green) → **confirm once** (human) → freeze → run the loop (the fixer builds `prose-lint.mjs` + the SKILL.md probe companion, kept iff floor + frozen check + surface-lock hold) → open a PR (never a merge; switch to the `duythien0912` gh account for PR creation, then switch back).
+2. **After the PR merges** + `/plugin marketplace update agentbox`: prove PIECE B behaviorally with a `claude -p` A/B — a content-shaped conductor goal proposes a `prose-lint` criterion; a pure-backend goal does not. (This is the probe's real acceptance; the frozen check only gated PIECE A.)
 3. **Optional end-to-end** (post-merge, like the FrontendGate proof): a real `/agentbox:conductor` docs goal whose confirmed DoD carries the `prose-lint.mjs` criterion, verified headless under `--permission-mode auto`.
 
 ## Self-review

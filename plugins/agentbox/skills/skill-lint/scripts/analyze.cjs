@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * skill-lint — analyze lirbox SKILL.md files for bloat and structure hygiene.
+ * skill-lint — analyze agentbox SKILL.md files for bloat and structure hygiene.
  *
  * Four deterministic checks (each finding tagged flag ● / warn ◐ / note ○):
  *   1. book    — body word count (frontmatter + fenced code excluded), graduated thresholds,

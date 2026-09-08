@@ -208,7 +208,7 @@ function generate(name) {
   L.push("    `You are one arena cell run. Do EXACTLY this and return the required JSON object.` +");
   L.push("    ` (Contract proven by the Task 0 spike.)\\n` +");
   L.push("    `1. Clone the fixture into your OWN scratch dir: git clone the bundle \"${cell.bundle}\" and check` +");
-  L.push("    ` out commit \"${cell.sha}\". Operate ONLY on this clone — do NOT touch the lirbox repo.\\n` +");
+  L.push("    ` out commit \"${cell.sha}\". Operate ONLY on this clone — do NOT touch the agentbox repo.\\n` +");
   L.push("    `2. READ \"${cell.taskFile}\" and paste its CONTENT into the sub-claude prompt — NEVER pass the file` +");
   L.push("    ` path itself (hidden SWE graders live beside it; the agent must not see them). Run conductor HEADLESS` +");
   L.push("    ` on the clone with that task text, BACKGROUNDED on real` +");
@@ -224,7 +224,7 @@ function generate(name) {
   L.push("    ` > \"${out}.diff\" (exclude any log/scratch).\\n` +");
   L.push("    `5. SWE-GRADE (rung-1, when this task is graded=${!!cell.graded}): run` +");
   L.push("    ` node plugins/agentbox/skills/arena/scripts/swe-grade.mjs --task ${cell.taskId} --diff \"${out}.diff\"` +");
-  L.push("    ` from the lirbox repo root. resolved=false in its JSON → forfeit=true (forfeitReason=\"unresolved\") —` +");
+  L.push("    ` from the agentbox repo root. resolved=false in its JSON → forfeit=true (forfeitReason=\"unresolved\") —` +");
   L.push("    ` an unresolved delivery cannot win, regardless of how good it looks. Record resolved in the meta.\\n` +");
   L.push("    `6. forfeit=true if conductor didn't engage / gates failed / errored / timed out / no diff / unresolved;` +");
   L.push("    ` else false. Write \"${out}.meta\" with {forfeit, forfeitReason, resolved, gateOutcome, tokens}.` +");

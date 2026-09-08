@@ -26,7 +26,7 @@ import { tmpdir } from 'node:os';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS = resolve(HERE, '..', '..', 'scripts');
 const SCORE = join(SCRIPTS, 'swe-score.mjs');
-const REPO = resolve(HERE, '..', '..', '..', '..', '..', '..'); // checks → evals → arena → skills → lirbox → plugins → repo
+const REPO = resolve(HERE, '..', '..', '..', '..', '..', '..'); // checks → evals → arena → skills → agentbox → plugins → repo
 const REAL_SCORES = join(REPO, 'docs', 'arena', 'scores');
 
 let ok = true;

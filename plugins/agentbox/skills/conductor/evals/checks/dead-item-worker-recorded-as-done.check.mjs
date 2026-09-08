@@ -42,7 +42,7 @@ import { tmpdir } from 'node:os';
 import { generate, parses, runBody } from './body-harness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const REPO = resolve(HERE, '..', '..', '..', '..', '..', '..');   // checks -> evals -> conductor -> skills -> lirbox -> plugins -> repo
+const REPO = resolve(HERE, '..', '..', '..', '..', '..', '..');   // checks -> evals -> conductor -> skills -> agentbox -> plugins -> repo
 const GEN = process.env.GEN_OVERRIDE || resolve(REPO, 'plugins/agentbox/skills/conductor/scripts/scaffold-workflow.cjs');
 const TMP = mkdtempSync(join(tmpdir(), 'dead-item-check-'));
 

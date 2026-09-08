@@ -28,7 +28,7 @@
 # agrees with itself.
 
 [task]
-name = "lirbox/loom__scaffold-runtime-fanout"
+name = "agentbox/loom__scaffold-runtime-fanout"
 version = "1.0.0"
 description = "loom must author a graph whose concurrent region is a real DAG — declaring which work depends on what — with the gate still un-bypassable"
 

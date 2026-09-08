@@ -1,5 +1,5 @@
 [task]
-name = "lirbox/conductor__scaffold-multiphase"
+name = "agentbox/conductor__scaffold-multiphase"
 version = "1.0.0"
 description = "conductor skill task: scaffold a durable multi-phase workflow (generated file is graded; the workflow is never executed)"
 

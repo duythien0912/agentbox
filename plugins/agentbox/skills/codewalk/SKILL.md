@@ -10,7 +10,7 @@ page an engineer can read to onboard or audit: a one-paragraph summary, a reques
 path diagram, a numbered walkthrough where each step carries a real `file:line` and an
 expandable real code excerpt, plus a key-files list and gotchas. Warm editorial design
 (ivory/clay/slate, serif headings), native `<details>` expand/collapse (no JS), opens
-offline. Shares its look with the other lirbox skills (`pr-writeup`, `plan-deck`).
+offline. Shares its look with the other agentbox skills (`pr-writeup`, `plan-deck`).
 
 ## When to use
 

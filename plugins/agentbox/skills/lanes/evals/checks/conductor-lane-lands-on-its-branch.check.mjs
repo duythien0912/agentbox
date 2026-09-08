@@ -54,7 +54,7 @@ writeFileSync(join(repo, 'f'), 'x'); git('add', '-A'); git('commit', '-qm', 'bas
 const agentDir = join(repo, '.claude', 'agents');
 mkdirSync(agentDir, { recursive: true });
 writeFileSync(join(agentDir, 'lane-ctx.md'), '# invariants\n');
-// The shape `orch-config.sh init` writes as default_profile: a lirbox lane agent,
+// The shape `orch-config.sh init` writes as default_profile: a agentbox lane agent,
 // claude kind, and no Skill anywhere in its tool list.
 writeFileSync(join(agentDir, 'hands.md'),
   '---\nname: hands\ntools: Read, Edit, Write, Bash, Grep, Glob, TodoWrite\n---\n\nyou implement\n');

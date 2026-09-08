@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `loom`, a new lirbox skill whose conductor interprets a node/edge **graph** instead of a fixed phase list — so a gate failure is an edge back to `Implement`, the graph can rewrite itself under invariants that keep every gate un-bypassable, and a human shapes it in a React Flow editor before launch.
+**Goal:** Build `loom`, a new agentbox skill whose conductor interprets a node/edge **graph** instead of a fixed phase list — so a gate failure is an edge back to `Implement`, the graph can rewrite itself under invariants that keep every gate un-bypassable, and a human shapes it in a React Flow editor before launch.
 
 **Architecture:** One pure-JS module (`graph-core.mjs`) holds all graph math — reachability, dominance, edge selection, patch validation. It is **imported** by the server and browser editor, and **inlined as source** into the generated conductor (which forbids `require`/`import`). A generator (`scaffold-loom.cjs`) emits a conductor that is a ~60-line interpreter loop over a graph spliced in as DATA. A zero-dep loopback HTTP server serves the editor and mediates the pre-flight comment→replan→approve loop.
 

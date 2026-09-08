@@ -63,12 +63,12 @@ for (const name of onDisk) {
     continue;
   }
   let code = 0;
-  // LIRBOX_FLOOR_NESTED breaks the cycle: checks-manifest-guard asserts that the floor passes, and
+  // agentbox_FLOOR_NESTED breaks the cycle: checks-manifest-guard asserts that the floor passes, and
   // the floor runs every check — including that guard. The sentinel tells a nested check to skip
   // its own floor invocation instead of recursing forever.
   try {
     execFileSync('node', [join(CHECKS_DIR, name + '.check.mjs')],
-      { stdio: 'pipe', env: { ...process.env, LIRBOX_FLOOR_NESTED: '1' } });
+      { stdio: 'pipe', env: { ...process.env, agentbox_FLOOR_NESTED: '1' } });
   } catch (e) { code = typeof e.status === 'number' ? e.status : 1; }
 
   if (expect === 'green') {

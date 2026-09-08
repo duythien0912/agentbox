@@ -30,7 +30,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = resolve(HERE, '..', '..', '..', '..', '..'); // lirbox repo root
+const REPO_ROOT = resolve(HERE, '..', '..', '..', '..', '..'); // agentbox repo root
 const TASKS_DIR = join(REPO_ROOT, 'plugins', 'agentbox', 'skills', 'conductor', 'arena', 'tasks');
 
 function arg(name, def) { const i = process.argv.indexOf('--' + name); const v = process.argv[i + 1]; return i > -1 ? (v && !v.startsWith('--') ? v : true) : def; }

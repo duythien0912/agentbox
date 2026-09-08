@@ -28,7 +28,7 @@
 # grading the code under test with the code under test proves only that it agrees with itself.
 
 [task]
-name = "lirbox/loom__scaffold-fanout"
+name = "agentbox/loom__scaffold-fanout"
 version = "1.0.0"
 description = "loom must author a graph whose concurrent region is a real DAG — declaring which work depends on what — with the gate still un-bypassable"
 

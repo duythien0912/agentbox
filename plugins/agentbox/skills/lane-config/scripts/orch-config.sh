@@ -45,7 +45,7 @@ agent_problem() {
       hk_agent_file "$agent" "$repo" >/dev/null && return 0
       print -r -- "$kind carries its bounded context as a file
   (${HK_AGENT_FLAG[$kind]}), and no markdown for agent '$agent' was found in
-  $repo/.claude/agents/, the lirbox plugin's agents/, or ~/.claude/agents/.
+  $repo/.claude/agents/, the agentbox plugin's agents/, or ~/.claude/agents/.
   Write the agent first, then declare the profile — or point this one at an
   existing agent with --agent <id>."
       return 1 ;;
@@ -172,7 +172,7 @@ init)
   # gets abandoned. Write a working default and SAY what was assumed. Every
   # value here is overridable with one set-* call, and `show` prints them.
   #
-  # The three roles are lirbox's, from the tier table in the orchestrator agent:
+  # The three roles are agentbox's, from the tier table in the orchestrator agent:
   # planner authors criteria (capable — a cheap lane cannot catch bad criteria),
   # verifier is the last thing between a defect and the remote (capable, and it
   # is the gate profile), builder types against criteria someone else wrote
@@ -300,7 +300,7 @@ set-profile)
       --flags)  FLAGS="$2";  shift 2 ;;
       --effort) EFFORT="$2"; shift 2 ;;
       # The agent the harness actually loads. Defaults to the profile name,
-      # which is right when a lirbox role and its agent share a name and wrong
+      # which is right when a agentbox role and its agent share a name and wrong
       # the moment a repo points a profile at an agent of its own.
       --agent)  AGENT="$2";  shift 2 ;;
       *) die "unknown flag: $1" ;;

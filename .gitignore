@@ -24,11 +24,11 @@ docs/superpowers/
 .loom/
 
 # Harbor derived build input. A tier-3 task IS its declaration under
-# plugins/lirbox/skills/<skill>/harbor/tasks/<id>/ — Harbor runs that directory directly. The only
+# plugins/agentbox/skills/<skill>/harbor/tasks/<id>/ — Harbor runs that directory directly. The only
 # untrackable piece is environment/skill/, the PRUNED copy of the skill the image installs for the
 # agent (evals/, harbor/, arena/ stripped, so it cannot read its own graders). Derived from tracked
 # files by scripts/harbor-prep.mjs — never committed, because a committed copy goes stale silently.
-plugins/lirbox/skills/*/harbor/tasks/*/environment/skill/
+plugins/agentbox/skills/*/harbor/tasks/*/environment/skill/
 
 # Harbor run output (`harbor run` writes jobs/<job>/<trial>/ with agent logs, verifier
 # results and artifacts). Runtime, per-run, often large — never committed.

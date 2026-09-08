@@ -247,7 +247,7 @@ Oral, arXiv 2507.19457](https://arxiv.org/pdf/2507.19457)):
 - `optimize_anything` optimizes **any textual artifact**, not just DSPy programs. It asks the caller
   for a function returning **a scalar score plus textual feedback** ("Actionable Side Information")
   and a **held-out valset**. That is `evals/run-scored.mjs --split train|val` plus the failing
-  assertion text — lirbox already produces both.
+  assertion text — agentbox already produces both.
 - It ships a **TerminalBench adapter** for optimizing an agent's system prompt, built on **Harbor**
   — the same harness this repo just adopted.
 - It ships **as a Claude Code Agent Skill** (`.claude/skills/gepa-optimize-anything/`), so the

@@ -14,7 +14,7 @@
   "config": {
     "model": "claude-opus-4-8[1m]",
     "effort": "high",
-    "pluginDir": "/Users/thiennd/Documents/git/Personal/lirbox/.worktrees/improve-conductor-20260714-182449/plugins/agentbox",
+    "pluginDir": "/Users/thiennd/Documents/git/Personal/agentbox/.worktrees/improve-conductor-20260714-182449/plugins/agentbox",
     "runs": 1
   },
   "cells": [

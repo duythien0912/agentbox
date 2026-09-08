@@ -1,4 +1,4 @@
-# SkillOpt exploration — what it is, what lirbox already has, what's worth stealing
+# SkillOpt exploration — what it is, what agentbox already has, what's worth stealing
 
 *Research note, July 2026. Sources at the bottom.*
 
@@ -38,28 +38,28 @@ consolidation is the single most load-bearing component after the val gate. Opti
 transferred across models and harnesses (a spreadsheet skill trained in Codex transferred to
 Claude Code at +59.7) because they capture reusable procedures, not harness-specific tricks.
 
-## Mapping onto lirbox
+## Mapping onto agentbox
 
 The striking thing: **prospector + whetstone already implement most of the SkillOpt control loop**,
 independently derived. The premise is identical — frozen model, edit the text, keep only validated
 improvements, never auto-merge.
 
-| SkillOpt concept | lirbox today | Status |
+| SkillOpt concept | agentbox today | Status |
 |---|---|---|
 | Skill file as trainable parameter, frozen model | whetstone edits `SKILL.md`+refs; model untouched | ✅ same premise |
 | Propose → evaluate → accept/reject loop | prospector's propose → gate+metric → keep/discard; whetstone's fix → floor+check → keep/revert | ✅ |
 | Validation gating (accept iff strictly better) | prospector keeps iff gate ∧ metric beats `best` by ≥`minDelta` ∧ beyond noise `spread` | ⚠️ gated, but **no train/val split** — see gap 1 |
 | Rejected-edit buffer | ledger digest (`change` + `kept` per generation) is fed to the propose agent — "no idea is repeated" | ✅ equivalent |
-| Anti-gaming constraints | **surface lock** (every touched path ⊆ surface, evals/backlog locked) + **discrimination gate** (checks must be RED on baseline) | ✅ lirbox is *stronger* here — SkillOpt has no per-check validity test |
+| Anti-gaming constraints | **surface lock** (every touched path ⊆ surface, evals/backlog locked) + **discrimination gate** (checks must be RED on baseline) | ✅ agentbox is *stronger* here — SkillOpt has no per-check validity test |
 | Stopping: plateau / rejection rate / budget | `plateauStop`, two-clock caps, `{experiments, wallclockMin, tokens}` totals, bounded `maxRestarts` escapes | ✅ |
-| Durable, resumable, reviewable | ledger + branch + worktree, never auto-merged | ✅ lirbox stronger (SkillOpt has no non-destructive review story) |
+| Durable, resumable, reviewable | ledger + branch + worktree, never auto-merged | ✅ agentbox stronger (SkillOpt has no non-destructive review story) |
 | **Trajectory-driven reflection** (optimizer reads scored rollouts) | whetstone's backlog is human-filed; prospector's proposer sees the goal + ledger digest, not transcripts | ❌ gap 4 |
 | **Textual learning rate** (bounded edit size per step) | surface lock bounds *where*, nothing bounds *how much* | ❌ gap 3 |
 | **Slow/meta consolidation** (periodic compress/dedupe pass) | nothing — kept fixes accrete; `skill-lint` catches bloat but nothing removes it in-loop | ❌ gap 2 — biggest ablation win |
 | **Compactness pressure / best-version selection** | no token-count signal anywhere in the loop | ❌ gap 2b |
 | Scalar skill-quality metric (pass-rate over a task set) | whetstone is binary per-concern; prospector is scalar but pointed at code, not skills | ❌ gap — but it's a *recipe*, not new machinery: see proposal 1 |
 
-Where lirbox is ahead of SkillOpt: the **surface lock** (SkillOpt trusts its optimizer not to edit
+Where agentbox is ahead of SkillOpt: the **surface lock** (SkillOpt trusts its optimizer not to edit
 the benchmark; we enforce it), the **discrimination gate** (SkillOpt never proves a signal is RED
 before crediting a fix for turning it green), and the **non-destructive branch + human review**
 default. None of those should be traded away while adopting the ideas below.
@@ -100,7 +100,7 @@ proposal 2 its threshold.
 
 ### 3. Textual learning rate — bound edit *size*, not just edit *location*
 **Leverage: medium. Cost: small.**
-SkillOpt bounds edit magnitude per step for stability. lirbox analog: a `budgets.maxDiffLines`
+SkillOpt bounds edit magnitude per step for stability. agentbox analog: a `budgets.maxDiffLines`
 (insertions+deletions within the surface, from `git diff --numstat`) checked by the eval worker
 and enforced by the conductor exactly like the surface lock — oversized diff ⇒ DISCARD/revert.
 Big rewrites are how a loop "wins" by accident and how diffs become unreviewable; small bounded
@@ -122,7 +122,7 @@ Do this after 1–3; it's the piece that makes the loop self-evolving rather tha
 Prospector's keep decision measures the same metric the proposer is optimizing against — fine for
 perf (the benchmark *is* the objective), but for a *skill* pass-rate metric it overfits: the loop
 learns the eval tasks, not the task family. SkillOpt's fix: the proposer sees **train** rollouts;
-the keep decision runs on **held-out val** tasks the proposer never sees. lirbox version: the
+the keep decision runs on **held-out val** tasks the proposer never sees. agentbox version: the
 scored runner from proposal 1 takes `--split train|val`; `metric.cmd` runs the **val** split;
 the propose worker's prompt gets **train**-split failure summaries only. Whetstone doesn't need
 this (its per-concern checks are frozen and human-confirmed — a different, adequate control), but
@@ -134,7 +134,7 @@ recipe 1 shouldn't ship without it, or it will look better than it is.
   no evidence gap to close.
 - **Their epochs/batch vocabulary** — prospector's generations/budgets vocabulary covers it; renaming
   is churn.
-- **Dropping any lirbox guard to match them** — surface lock, discrimination gate, and never-auto-merge
+- **Dropping any agentbox guard to match them** — surface lock, discrimination gate, and never-auto-merge
   all stay. SkillOpt is weaker on all three.
 
 ## Suggested order

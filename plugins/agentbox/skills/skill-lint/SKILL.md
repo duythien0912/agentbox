@@ -1,6 +1,6 @@
 ---
 name: skill-lint
-description: Use when auditing lirbox SKILL.md files for bloat and structure hygiene — flags skills that "read like a book" (over the word budget or dense with long prose), unbalanced or missing XML structural tags, weak frontmatter descriptions/triggers, and oversized inline flowcharts or reference files. Triggers on "lint the skills", "which skills are too long", "check skill structure", "are my skills concise". Reports findings; does not edit.
+description: Use when auditing agentbox SKILL.md files for bloat and structure hygiene — flags skills that "read like a book" (over the word budget or dense with long prose), unbalanced or missing XML structural tags, weak frontmatter descriptions/triggers, and oversized inline flowcharts or reference files. Triggers on "lint the skills", "which skills are too long", "check skill structure", "are my skills concise". Reports findings; does not edit.
 ---
 
 # skill-lint — measure skills against the concise-skill standard
@@ -11,7 +11,7 @@ A deterministic scanner. It does NOT rewrite skills — it reports, ranked most-
 From the repo root:
 
 ```bash
-node plugins/agentbox/skills/skill-lint/scripts/analyze.cjs            # scan every lirbox skill
+node plugins/agentbox/skills/skill-lint/scripts/analyze.cjs            # scan every agentbox skill
 node plugins/agentbox/skills/skill-lint/scripts/analyze.cjs <skill…>   # one or more SKILL.md paths or skill dirs
 node plugins/agentbox/skills/skill-lint/scripts/analyze.cjs --strict   # exit 1 if any ● flag (CI gate)
 node plugins/agentbox/skills/skill-lint/scripts/analyze.cjs --json     # machine-readable
