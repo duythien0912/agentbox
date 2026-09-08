@@ -1,6 +1,6 @@
 {
   "name": "agentbox",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "agentbox — comprehensive developer toolkit featuring 19 skills and 10 agents for architectural diagramming (C4, sequence, flowchart), automated code walkthroughs, durable orchestration (conductor, loom, lanes), and eval-gated optimization (prospector, whetstone, arena).",
   "author": {
     "name": "duythien0912",
