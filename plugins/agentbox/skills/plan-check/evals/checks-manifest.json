@@ -1,0 +1,201 @@
+{
+  "_comment": [
+    "Expectation manifest for this skill's frozen acceptance-checks.",
+    "Enforced repo-wide by scripts/evals-all.mjs on every push and PR.",
+    "",
+    "expect \"green\" = a past fix that must not regress. MUST exit 0.",
+    "expect \"red\"   = a known-failing check (open concern / in-flight item). MUST exit 0 or 1;",
+    "                 >=2 is harness rot (it failed to RUN). A red check that turns GREEN does NOT",
+    "                 fail the gate -- it prints a promote-me notice; move it to green when its fix lands.",
+    "",
+    "A check file missing from this manifest FAILS the gate: an unlisted check is an unguarded check.",
+    "LOCKED (evals/**): improvement loops may never edit this file -- otherwise a loop could flip a",
+    "regressing check to \"red\" and escape its own fence."
+  ],
+  "checks": {
+    "autofix-bounded": {
+      "expect": "green",
+      "note": "Added 2026-08-03. plan-check adjudicated and stopped: a finding whose repair is fully determined by the finding itself still had to be re-applied by hand, and NO-GO arrived with no route out. Autofix closes that -- but the risk it introduces is worse than the gap it fills, so this check guards the BOUNDARY, not the feature: the input plan is never overwritten (it is the evidence that justified the edits), REFUTED is never autofixed (repairing a wrong model of reality is design, not transcription -- and a laundered REFUTED makes the plan READ as verified), and an applied fix re-opens its proposition so the verdict can never improve merely because the map was redrawn.",
+      "mutations": [
+        {
+          "why": "lets autofix overwrite the plan it audited, destroying the evidence for its own edits",
+          "env": "PLAN_CHECK_SKILL_MD",
+          "file": "SKILL.md",
+          "find": "The input plan is **never modified** — write a sibling `<plan>.autofix.md`.",
+          "replace": "Apply the fixes to the plan."
+        },
+        {
+          "why": "removes the REFUTED exclusion, allowing verdict laundering -- the failure mode with the worst blast radius",
+          "env": "PLAN_CHECK_AUTOFIX_MD",
+          "file": "references/autofix.md",
+          "find": "- **`REFUTED`** — the plan's model of reality is wrong. Choosing the new approach is\n  design. Autofix must not touch it, and must not let the plan read as if it had.",
+          "replace": "- **Hard ones** — use judgement."
+        },
+        {
+          "why": "drops the re-verification requirement, so an edited plan keeps a verdict that was never re-earned",
+          "env": "PLAN_CHECK_AUTOFIX_MD",
+          "file": "references/autofix.md",
+          "find": "An autofixed row is UNVERIFIED again until re-checked. Applying a fix invalidates the\nreport that motivated it. Re-run steps 3–6 on every touched proposition and re-emit the\nreport before the verdict is recomputed.",
+          "replace": "Apply the fixes and note them in the report."
+        }
+      ]
+    },
+    "goal-coverage": {
+      "expect": "green",
+      "note": "Added 2026-08-03. plan-check had NO concept of the plan's goal -- on 9c86ced the only /goal/i match across SKILL.md, template.html and both references was incidental prose. It fell out of the skill's own framing: step 2 keeps only 'atomic checkable propositions' and a goal has no truth value, so it never survived decomposition. Cost: the DoD was unanchored (every criterion checkable, none of them achieving the objective, and the report blind to it), GO meant 'the claims hold' rather than 'this plan achieves its goal', and agentbox:conductor seeds its DoDGate from #dod so it verified faithfully toward a target nobody validated. Guards BOTH halves deliberately -- a goal line without the adjudication is decoration, and decoration is exactly what measured no-better last time.",
+      "mutations": [
+        {
+          "why": "drops the goal slot from the report template, so there is nowhere to state the objective",
+          "env": "PLAN_CHECK_TEMPLATE",
+          "file": "assets/template.html",
+          "find": "<p id=\"goal\"><strong>Goal:</strong> {{PLAN_GOAL}}</p>",
+          "replace": "<p>{{PLAN_GOAL}}</p>"
+        },
+        {
+          "why": "makes the goal-coverage row optional, which is the same as absent -- the adjudication is the half that catches a plan solving the wrong problem",
+          "env": "PLAN_CHECK_VALIDATE",
+          "file": "assets/validate.mjs",
+          "find": "const goalRows = rows.filter((tag) => attr(tag, 'data-goal-coverage') !== null);",
+          "replace": "const goalRows = [null];"
+        },
+        {
+          "why": "removes the SKILL.md instruction tying the DoD back to the goal, leaving the validator to demand a row nothing tells the model to produce",
+          "env": "PLAN_CHECK_SKILL_MD",
+          "file": "SKILL.md",
+          "find": "*if every\n   DoD criterion were met, would the stated goal be achieved?*",
+          "replace": "*is the ledger complete?*"
+        }
+      ]
+    },
+    "fix-disposition": {
+      "expect": "green",
+      "note": "Added 2026-08-05. SKILL.md step 7 has demanded a `fix:` disposition on every open row since #57 and the model largely ignored it: MEASURED at 4/10 in BOTH arms of a 20-trial paired Harbor run on execution-shape (2026-08-04), with a LENIENT grader that scored 1 for a single `fix:` string anywhere in the file -- six of ten reports per arm had none at all, in runs whose reports carried 6-12 open rows each. Every other element of the same contract sat at ~100% over the same runs (#dod 10/10, id=goal 20/20, data-goal-coverage 20/20, #taskgraph 10/10). The one thing they share and this lacked: a template slot and a validate.mjs rule. SKILL.md step 9 loops the model until validate.mjs exits 0, so a rule living only in prose never enters the loop. Guards the invariant PER ROW on purpose -- a file-level `fix:` grep is the exact leniency the Harbor grader had, and it lets one tagged row excuse ten untagged ones.",
+      "mutations": [
+        {
+          "why": "removes the disposition slot from the claim-row specimen, so nothing reaches the model at the moment it writes the HTML -- the precise gap that measured 4/10",
+          "env": "PLAN_CHECK_TEMPLATE",
+          "file": "assets/template.html",
+          "find": "{{STATUS_DETAIL}} <span class=\"fix\">fix: {{FIX_DISPOSITION}}</span></td>",
+          "replace": "{{STATUS_DETAIL}}</td>"
+        },
+        {
+          "why": "drops the restatement from step 8 (the step that writes the report), leaving it only in step 7 where it already measured 4/10",
+          "env": "PLAN_CHECK_SKILL_MD",
+          "file": "SKILL.md",
+          "find": "   Carry step 7's disposition onto **every open row** — `<span class=\"fix\">fix: mechanical</span>`\n   or `fix: needs-decision`; machine-checked, and drop the span on rows that are not open.\n",
+          "replace": ""
+        },
+        {
+          "why": "removes the validator rule entirely, putting the convention back in prose-only territory",
+          "env": "PLAN_CHECK_VALIDATE",
+          "file": "assets/validate.mjs",
+          "find": "if (untagged.length) {",
+          "replace": "if (false) {"
+        },
+        {
+          "why": "makes the rule per-FILE instead of per-row -- the leniency the Harbor grader had, where one tagged row excuses every untagged one",
+          "env": "PLAN_CHECK_VALIDATE",
+          "file": "assets/validate.mjs",
+          "find": "  .filter(({ i, s }) => OPEN.has(s) && !FIX.test(fullRows[i - 1]));",
+          "replace": "  .filter(({ s }) => OPEN.has(s) && !FIX.test(markup));"
+        },
+        {
+          "why": "accepts any `fix:` value, so 'fix: later' or 'fix: TODO' passes as a disposition and the mechanical/needs-decision split stops meaning anything",
+          "env": "PLAN_CHECK_VALIDATE",
+          "file": "assets/validate.mjs",
+          "find": "const FIX = /\\bfix:\\s*(mechanical|needs-decision)\\b/i;",
+          "replace": "const FIX = /\\bfix:/i;"
+        }
+      ]
+    },
+    "task-graph": {
+      "expect": "green",
+      "note": "Added 2026-08-04. execution-shape taught plan-check to FIND a dishonest task graph, but the finding landed as prose in a claim row -- unreadable by anything downstream, and wrong about the one runner this repo ships: blind-spot.md called a file claimed by two tasks 'an undeclared serialization point' while conductor's own planner prompt says 'Touching the SAME file is NOT a dependency: every item runs in its OWN worktree on its OWN branch'. Acting on the old advice makes a plan MORE serial than the work is. Guards two halves, worthless apart: (a) levels are DERIVED -- validate.mjs re-layers the needs edges and rejects a mismatch, so a report can neither invent serialization nor claim parallelism its edges forbid; (b) needs and contention are different constraints, and a contention edge must NOT split its tasks across levels. Asserted by EXECUTING validate.mjs, not grepping it -- the three prior checks in this skill each shipped a FALSE-GREEN from a token surviving in a neighbour.",
+      "mutations": [
+        {
+          "why": "removes the taskgraph block from the report template, so there is nowhere to declare the execution shape",
+          "env": "PLAN_CHECK_TEMPLATE",
+          "file": "assets/template.html",
+          "find": "<script type=\"application/json\" id=\"taskgraph\">",
+          "replace": "<script type=\"application/json\" id=\"othergraph\">"
+        },
+        {
+          "why": "drops the SKILL.md instruction naming both edge kinds, so nothing tells the model contention differs from needs",
+          "env": "PLAN_CHECK_SKILL_MD",
+          "file": "SKILL.md",
+          "find": "Each edge is\n   `needs` (this task needs the other's *output*) or `contention` (both write one file: a merge\n   cost, not an order, since each task gets its own worktree) and carries a `why`.",
+          "replace": "Declare the edges."
+        },
+        {
+          "why": "deletes only the DERIVED clause, leaving the edge kinds -- proves the check is anchored to levels-are-computed and not merely to the word 'derive', which step 8 already uses for the DoD",
+          "env": "PLAN_CHECK_SKILL_MD",
+          "file": "SKILL.md",
+          "find": "`levels` is\n   **derived** — validate.mjs recomputes it from the `needs` edges — so you can neither invent\n   serialization nor claim parallelism the edges forbid.",
+          "replace": "State the levels."
+        },
+        {
+          "why": "reverts the blind-spot bullet to calling any shared file a serialization point -- the guidance that contradicts conductor and costs real parallelism",
+          "env": "PLAN_CHECK_BLIND_SPOT_MD",
+          "file": "references/blind-spot.md",
+          "find": "a collision, but classify it before you serialize\n  anything. Where each task gets its own worktree (`agentbox:conductor` does), it is `contention`:\n  a merge cost at integration, not an ordering constraint — recording it as a dependency\n  serializes work that has none. Where the tasks share one working tree it *is* an order.\n  Report the table either way; an unclassified collision is the finding.",
+          "replace": "an undeclared serialization point. Declaring the tasks serial is the author's call."
+        },
+        {
+          "why": "makes the taskgraph block optional, so a report can stay silent on what runs concurrently",
+          "env": "PLAN_CHECK_VALIDATE",
+          "file": "assets/validate.mjs",
+          "find": "if (tgBlocks.length !== 1) {",
+          "replace": "if (tgBlocks.length === 0) { /* optional */ } else if (tgBlocks.length !== 1) {"
+        },
+        {
+          "why": "stops levels being derived, so a report may assert any shape -- including a fully serial one no edge justifies",
+          "env": "PLAN_CHECK_VALIDATE",
+          "file": "assets/validate.mjs",
+          "find": "        if (!same) {",
+          "replace": "        if (false) {"
+        },
+        {
+          "why": "drops the unclassified-collision rule, so a plan whose tasks silently share a file reads as independent",
+          "env": "PLAN_CHECK_VALIDATE",
+          "file": "assets/validate.mjs",
+          "find": "          if (!linked.has(key)) {",
+          "replace": "          if (false) {"
+        },
+        {
+          "why": "lets a contention edge constrain levels -- the regression that hands a runner a needlessly serial plan while every other rule still passes",
+          "env": "PLAN_CHECK_VALIDATE",
+          "file": "assets/validate.mjs",
+          "find": "      if (e.kind === 'needs') needs.push([from, to]);",
+          "replace": "      needs.push([from, to]);"
+        }
+      ]
+    },
+    "execution-shape": {
+      "expect": "green",
+      "note": "Added 2026-08-03. plan-check verified whether a plan was CORRECT but never whether its declared task graph was HONEST -- and an agentic runner dispatches from those declarations literally, so an undeclared edge runs concurrently what must not be. Found in two plans plan-check had itself reviewed: a task declaring 'Consumes: nothing' whose own step 6 said 'run it after Task 1 has landed', and one function claimed by five of eight tasks with no task declaring the overlap. Guards the invariant that the declared graph is tested against the file-level truth the plan itself states -- NOT that the plan be parallel. Parallelism is an output of an honest graph; asking for it directly produces a plan claiming independence it does not have.",
+      "mutations": [
+        {
+          "why": "removes the file -> tasks inversion from decomposition, so an undeclared collision is never derived",
+          "env": "PLAN_CHECK_SKILL_MD",
+          "file": "SKILL.md",
+          "find": "a file claimed by two\n   tasks, or an edge stated only in step prose, is a proposition",
+          "replace": "hidden dependencies are propositions"
+        },
+        {
+          "why": "deletes the collision test from the blind-spot checklist while leaving the section heading intact -- a check anchored to the heading would not notice",
+          "env": "PLAN_CHECK_BLIND_SPOT_MD",
+          "file": "references/blind-spot.md",
+          "find": "- **A file claimed by more than one task** — a collision, but classify it before you serialize\n  anything. Where each task gets its own worktree (`agentbox:conductor` does), it is `contention`:\n  a merge cost at integration, not an ordering constraint — recording it as a dependency\n  serializes work that has none. Where the tasks share one working tree it *is* an order.\n  Report the table either way; an unclassified collision is the finding.",
+          "replace": "- **Files** — check them."
+        },
+        {
+          "why": "deletes the undeclared-edge test (prose edge vs dependency block), the failure mode a runner actually trips on",
+          "env": "PLAN_CHECK_BLIND_SPOT_MD",
+          "file": "references/blind-spot.md",
+          "find": "- **Undeclared dependency edges** — stated in step prose, absent from the task's own\n  dependency block. The block is what a runner reads. `UNSTATED-ASSUMPTION`.",
+          "replace": "- **Edges** — look at them."
+        }
+      ]
+    }
+  }
+}

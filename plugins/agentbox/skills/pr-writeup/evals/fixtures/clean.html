@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#42 — Implement user sessions</title>
+<style>
+body { font-family: sans-serif; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <p class="eyebrow">Pull request · Auth</p>
+    <h1 class="title">#42 — Implement user sessions</h1>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <main>
+    <section id="tldr">
+      <p class="kicker">TL;DR</p>
+      <h2 class="h">Add session management</h2>
+      <p class="lead">Implements cookie-based session tracking.</p>
+    </section>
+
+    <section id="files">
+      <p class="kicker">File-by-file</p>
+      <h2 class="h">What changed, and why</h2>
+
+      <div class="file" id="file-1">
+        <div class="file-head">
+          <span class="badge new">new</span>
+          <span class="path">src/session.ts</span>
+          <span class="stat"><span class="add">+120</span> <span class="del">−0</span></span>
+        </div>
+        <p class="role">Core session store</p>
+        <p>Implements session issuance and verification.</p>
+      </div>
+
+      <div class="file" id="file-2">
+        <div class="file-head">
+          <span class="badge mod">mod</span>
+          <span class="path">src/server.ts</span>
+          <span class="stat"><span class="add">+15</span> <span class="del">−3</span></span>
+        </div>
+        <p class="role">Server entry point</p>
+        <p>Wires session middleware into request lifecycle.</p>
+      </div>
+    </section>
+
+    <section id="focus">
+      <p class="kicker">Where to focus your review</p>
+      <h2 class="h">The parts that actually need eyes</h2>
+
+      <div class="focus">
+        <div class="num">1</div>
+        <div>
+          <p class="ttl">Token rotation</p>
+          <p>Verify that expired tokens are cleanly revoked.</p>
+          <p class="ref">src/session.ts:45</p>
+        </div>
+      </div>
+      <div class="focus">
+        <div class="num">2</div>
+        <div>
+          <p class="ttl">Cookie flags</p>
+          <p>Ensure HttpOnly and Secure flags are always set.</p>
+          <p class="ref">src/session.ts:88</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="tests">
+      <p class="kicker">Test plan</p>
+      <h2 class="h">How we know it works</h2>
+      <ul class="checks">
+        <li class="done">Unit tests for token issuance and expiry</li>
+        <li class="todo">Integration test against redis store</li>
+        <li class="na">Load test (not applicable for v1)</li>
+      </ul>
+    </section>
+  </main>
+
+  <aside>
+    <nav class="toc">
+      <p class="toc-lbl">On this page</p>
+      <a href="#tldr">TL;DR</a>
+      <a href="#files">File-by-file</a>
+      <a class="sub" href="#file-1">src/session.ts</a>
+      <a class="sub" href="#file-2">src/server.ts</a>
+      <a href="#focus">Where to focus</a>
+      <a href="#tests">Test plan</a>
+    </nav>
+  </aside>
+</div>
+
+<footer class="wrap">
+  Generated PR write-up · Auth · 2026-09-08
+</footer>
+
+</body>
+</html>

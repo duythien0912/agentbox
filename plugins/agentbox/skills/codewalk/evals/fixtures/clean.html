@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codewalk — Authentication Flow</title>
+<style>
+body { font-family: sans-serif; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <p class="eyebrow">Codewalk · Auth</p>
+    <h1 class="title">How authentication flows through the codebase</h1>
+    <p class="summary">Tracing the request authentication pipeline.</p>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <main>
+    <section id="path">
+      <h2 class="h">Request path</h2>
+      <div class="flow">
+        <span class="node">Router<span class="sub">src/router.ts</span></span>
+        <span class="arrow"><span class="albl">route</span>→</span>
+        <span class="node critical">verifyToken()<span class="sub">src/auth.ts</span></span>
+        <span class="arrow"><span class="albl">ok</span>→</span>
+        <span class="node">Handler<span class="sub">src/handler.ts</span></span>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <h2 class="h">Walkthrough</h2>
+
+      <div class="step">
+        <div class="num">1</div>
+        <div class="body">
+          <p class="loc">src/router.ts:15–32</p>
+          <p>The request enters the router and matches the route.</p>
+          <details class="snip"><summary>router.ts · route()</summary>
+<pre>export function route(req) { return match(req); }</pre>
+          </details>
+        </div>
+      </div>
+
+      <div class="step critical">
+        <div class="num">2</div>
+        <div class="body">
+          <p class="loc">src/auth.ts:40–85 <span class="badge">trust boundary</span></p>
+          <p>Verifies the signed session token against secret.</p>
+          <details class="snip"><summary>auth.ts · verifyToken()</summary>
+<pre>export function verifyToken(req) { return verify(req.token); }</pre>
+          </details>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div class="body">
+          <p class="loc">src/handler.ts:10–45</p>
+          <p>Dispatches the authenticated request to handler.</p>
+          <details class="snip"><summary>handler.ts · handle()</summary>
+<pre>export function handle(req) { return render(req); }</pre>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside>
+    <nav class="toc">
+      <p class="lbl">On this page</p>
+      <a href="#path">Request path</a>
+      <a href="#walkthrough">Walkthrough</a>
+    </nav>
+  </aside>
+</div>
+
+<footer class="wrap">
+  Codewalk · Auth · traced 2026-09-08
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "agentbox",
+  "version": "1.0.0",
+  "description": "agentbox — comprehensive developer toolkit featuring 19 skills and 10 agents for architectural diagramming (C4, sequence, flowchart), automated code walkthroughs, durable orchestration (conductor, loom, lanes), and eval-gated optimization (prospector, whetstone, arena).",
+  "author": {
+    "name": "duythien0912",
+    "email": "duythien0912@users.noreply.github.com"
+  },
+  "homepage": "https://github.com/duythien0912/agentbox",
+  "repository": "https://github.com/duythien0912/agentbox",
+  "license": "MIT",
+  "keywords": ["agentbox", "pr", "pull-request", "code-review", "html", "writeup", "orchestration"]
+}

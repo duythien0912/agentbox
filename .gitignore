@@ -1,0 +1,84 @@
+# Secrets — never tracked. Harbor reads this via --env-file.
+.env
+.env.*
+!.env.example
+
+# OS / editor junk
+.DS_Store
+*.swp
+
+# Local design docs (brainstorming specs / implementation plans) — never tracked or published
+docs/superpowers/
+
+# Runtime artifacts from the pr-writeup skill (if ever run inside the repo)
+.pr-writeup/
+*-writeup.html
+
+# Conductor / prospector / whetstone / arena runtime state (local; the resume key lives here, not tracked)
+.workflows/
+.optimize/
+.improve/
+.arena/
+
+# Build-time scratch left by loom (graph, state, checks, editor action files)
+.loom/
+
+# Harbor derived build input. A tier-3 task IS its declaration under
+# plugins/lirbox/skills/<skill>/harbor/tasks/<id>/ — Harbor runs that directory directly. The only
+# untrackable piece is environment/skill/, the PRUNED copy of the skill the image installs for the
+# agent (evals/, harbor/, arena/ stripped, so it cannot read its own graders). Derived from tracked
+# files by scripts/harbor-prep.mjs — never committed, because a committed copy goes stale silently.
+plugins/lirbox/skills/*/harbor/tasks/*/environment/skill/
+
+# Harbor run output (`harbor run` writes jobs/<job>/<trial>/ with agent logs, verifier
+# results and artifacts). Runtime, per-run, often large — never committed.
+jobs/
+
+# Build-time scratch left by conductor/prospector workers (delivered only via docs/changes, else dropped)
+implementation-notes/
+
+# Per-run orchestration store + run ledger written by the herdr orchestrator
+# (dispatch/, evidence/, decisions/, progress/, notes.jsonl, implementation-notes.html).
+# Run scratch — the finished ledger is PROMOTED into docs/changes/<run>/ at publish, like conductor's.
+.orchestration/
+
+# Git worktrees created by conductor/prospector/whetstone
+.worktrees/
+
+# Generated single-file HTML artifacts (flowchart / codewalk / plan-deck / component / sequence skills)
+*-flowchart.html
+*-codewalk.html
+*-plan-deck.html
+*-component.html
+*-sequence.html
+*-c4.html
+
+# EXCEPTION: conductor's Writeup phase PROMOTES delivery artifacts into docs/changes/<name>/
+# (writeup.html, design.html, notes/*.html, summary.md) — these ARE tracked, they ride the PR.
+# Must come AFTER the filename-globs above so it re-includes anything they would catch.
+!docs/changes/
+!docs/changes/**
+
+# EXCEPTION: arena's Finalize phase PROMOTES the leaderboard into docs/arena/<name>/
+# (leaderboard.html, report.md) — tracked so the finalize PR carries a diff.
+!docs/arena/
+!docs/arena/**
+
+
+# Knowledge graph outputs (local only, never commit)
+graphify-out/
+.graphify/
+
+.env
+
+# Python bytecode — rewardkit imports the Harbor graders as modules, so running a task
+# verifier locally drops __pycache__ next to checks.py. One copy already reached main this way.
+__pycache__/
+*.pyc
+
+# Generated plan-check audit reports
+*-plan-check.html
+plan-check-*.html
+
+# Local Oh My Pi runtime / bridge
+.omp/

@@ -1,0 +1,422 @@
+#!/bin/zsh
+# Per-project orchestration config: the primitives. The interview that fills it
+# lives in the `lane-config` skill — this file never guesses on the user's
+# behalf, it only reports what is knowable and writes what it is told.
+#
+#   orch-config.sh path     [repo]              print the config path
+#   orch-config.sh show     [repo]              print it, or say it is absent
+#   orch-config.sh detect   [repo]              JSON of what can be measured here
+#   orch-config.sh init     [repo]              write a skeleton (NO invented profiles)
+#   orch-config.sh validate [repo]              exit 1 with reasons if unusable
+#   orch-config.sh set-profile <name> --kind K --model M [--effort E] [--flags "a b"] [repo]
+#   orch-config.sh set-lanes [--max N] [--timeout MS] [--context N] [--gate-profile P]
+#                            [--max-restarts N] [repo]
+#   orch-config.sh set-setup [--install C] [--build C] [--test C] [--baseline S] [repo]
+#
+# Stored user-local, keyed by the repo's git common dir — the same key the lane
+# ledger uses, so one repo has one config no matter which worktree or
+# subdirectory the orchestrator happens to be standing in.
+
+emulate -L zsh
+setopt no_nomatch
+
+die() { print -u2 -r -- "orch-config: $1"; exit 1 }
+
+# The harness table. Which kinds exist, and which flag carries the profile, the
+# model and the effort on each — one file, shared with orch-lane.sh and
+# hooks/model-policy.sh. This used to be `(claude|opencode)` written out here
+# and in two other places, which is how a third harness becomes a three-file
+# change instead of a one-line one.
+# HARNESS_KINDS_OVERRIDE is the mutation-testing escape hatch scripts/prove-checks.mjs
+# needs: a check that guards this table can only be proven if the table it loads
+# can be pointed somewhere else. Unset in every real run.
+source "${HARNESS_KINDS_OVERRIDE:-${0:h}/../../../scripts/harness-kinds.sh}"
+
+# One check for both write-time (set-profile) and read-time (validate)
+# refusal: a profile whose agent will not resolve at spawn is a lane that
+# starts clean and dies with "timed out waiting for agent startup" —
+# indistinguishable from a cold pane. `file` and `name` are each an invariant
+# a profile can fail; `none` has nothing to check. Prints the problem (empty
+# on success) so each caller can either `die` on it or collect it.
+agent_problem() {
+  local kind="$1" agent="$2" repo="$3"
+  case "${HK_AGENT_ARG[$kind]-}" in
+    file)
+      hk_agent_file "$agent" "$repo" >/dev/null && return 0
+      print -r -- "$kind carries its bounded context as a file
+  (${HK_AGENT_FLAG[$kind]}), and no markdown for agent '$agent' was found in
+  $repo/.claude/agents/, the lirbox plugin's agents/, or ~/.claude/agents/.
+  Write the agent first, then declare the profile — or point this one at an
+  existing agent with --agent <id>."
+      return 1 ;;
+    name)
+      local names; names=$(hk_agent_exists "$kind" "$agent" "$repo") && return 0
+      local -a known; known=(${(f)names})
+      print -r -- "agent '$agent' is not in $kind's own agent registry.
+  Available: ${(j:, :)known}"
+      return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+SUB="${1:-path}"; shift 2>/dev/null || true
+
+# Trailing arg may be a repo path; anything starting with - is a flag.
+REPO="$PWD"
+if (( $# )) && [[ "${@[-1]}" != -* && -d "${@[-1]}" ]]; then
+  REPO="${@[-1]}"; set -- "${@[1,-2]}"
+fi
+
+# The git invocation here must match the one in hooks/*.sh. --path-format=absolute
+# is load-bearing: without it git answers `.git` from a repo root and
+# `../../.git` from a subdir, so unrelated repos collide and one repo splits
+# across three keys.
+KEY=$(git -C "$REPO" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
+[[ -n "$KEY" ]] || KEY="$REPO"
+
+DIR="$HOME/.claude/agentbox-orchestrator"
+CFG="$DIR/$(print -rn -- "$KEY" | shasum | cut -c1-12).json"
+
+write() { mkdir -p "$DIR"; print -r -- "$1" > "$CFG" }
+need()  { [[ -r "$CFG" ]] || die "no config at $CFG — run \`orch-config.sh init\` first." }
+
+case "$SUB" in
+
+path) print -r -- "$CFG" ;;
+
+show)
+  [[ -r "$CFG" ]] || { print -r -- "# no config for $REPO"; print -r -- "# expected at: $CFG"; exit 1 }
+  print -r -- "# $CFG"; cat -- "$CFG" ;;
+
+detect)
+  # Only what can be measured. Profiles are NOT guessed — which harness a class
+  # of work deserves is a judgement the user makes once, not one inferred from
+  # a lockfile.
+  local pm="" install="" build="" test=""
+  if   [[ -f "$REPO/pnpm-lock.yaml"    ]]; then pm=pnpm;   install="pnpm install --frozen-lockfile"; build="pnpm -r build"; test="pnpm -r test"
+  elif [[ -f "$REPO/yarn.lock"         ]]; then pm=yarn;   install="yarn install --immutable";       build="yarn build";    test="yarn test"
+  elif [[ -f "$REPO/package-lock.json" ]]; then pm=npm;    install="npm ci";                         build="npm run build"; test="npm test"
+  elif [[ -f "$REPO/bun.lockb"         ]]; then pm=bun;    install="bun install --frozen-lockfile";  build="bun run build"; test="bun test"
+  elif [[ -f "$REPO/Cargo.toml"        ]]; then pm=cargo;  install="cargo fetch";                    build="cargo build";   test="cargo test"
+  elif [[ -f "$REPO/go.mod"            ]]; then pm=go;     install="go mod download";                build="go build ./..."; test="go test ./..."
+  fi
+  # Which branch lanes are cut from. orch-lane.sh used to hardcode "dev", which
+  # is right in exactly the repos that use it and fails everywhere else with
+  # `fatal: not a valid object name: 'dev'` — the same message a missing --cwd
+  # produces, so the two hid behind each other. Ask git: the remote's default
+  # head first, then the local branches people actually integrate on.
+  # Order matters and origin/HEAD is NOT first: cloudflare-os integrates on dev
+  # while its origin/HEAD says main, so the remote's opinion would have written
+  # the wrong branch into the config with full confidence. What someone actually
+  # has checked out is the better signal. This stays a SUGGESTION either way —
+  # init leaves base_branch null and orch-lane.sh refuses to start without it,
+  # because the branch every worktree is cut from is a decision, like a profile.
+  # main leads every blind list. An earlier cut scanned `dev develop main master`
+  # and that is the original defect one level up: a house convention treated as a
+  # fact about all repos. Where there is no evidence, the ecosystem default wins.
+  local base="" cur c
+  cur=$(git -C "$REPO" rev-parse --abbrev-ref HEAD 2>/dev/null)
+  # Evidence beats the default: a checked-out integration branch is someone
+  # having already answered this. cloudflare-os sits on dev while its
+  # origin/HEAD says main, and only this rule gets that repo right.
+  for c in main master dev develop; do
+    [[ "$cur" == "$c" ]] && { base="$cur"; break }
+  done
+  if [[ -z "$base" ]]; then
+    base=$(git -C "$REPO" symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null)
+    base="${base#origin/}"
+  fi
+  if [[ -z "$base" ]]; then
+    for c in main master dev develop; do
+      git -C "$REPO" rev-parse --verify -q "$c" >/dev/null 2>&1 && { base="$c"; break }
+    done
+  fi
+  [[ -n "$base" ]] || base="$cur"
+
+  local ncpu; ncpu=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
+  # opencode is commonly installed outside PATH (~/.opencode/bin). An empty
+  # profile list because the binary was not found is a broken probe, not a
+  # project with no profiles — look where it actually lives before concluding.
+  local OC=""
+  for c in "${OPENCODE_BIN:-}" "$(command -v opencode 2>/dev/null)" "$HOME/.opencode/bin/opencode"; do
+    [[ -n "$c" && -x "$c" ]] && { OC="$c"; break }
+  done
+  local profiles='[]'
+  if [[ -n "$OC" ]]; then
+    # Agent names are the non-indented lines; the indented remainder is a JSON
+    # permission blob that would otherwise be scraped as names.
+    profiles=$("$OC" agent list 2>/dev/null \
+      | grep -E '^[a-z][a-z0-9_-]*( |$)' | awk '{print $1}' | sort -u \
+      | jq -R . | jq -s . 2>/dev/null || print -r -- '[]')
+  fi
+  jq -n --arg pm "$pm" --arg i "$install" --arg b "$build" --arg t "$test" \
+        --argjson cpu "$ncpu" --argjson prof "$profiles" --arg cfg "$CFG" --arg repo "$REPO" \
+    --arg oc "$OC" --arg base "$base" '{repo:$repo, config_path:$cfg, suggested_base_branch:$base, package_manager:(if $pm=="" then null else $pm end),
+      setup:{install:(if $i=="" then null else $i end), build:(if $b=="" then null else $b end),
+             test:(if $t=="" then null else $t end)},
+      cpus:$cpu, suggested_max_concurrent:(($cpu/2)|floor),
+      profiles_discovered:$prof, opencode_bin:(if $oc=="" then null else $oc end),
+      effort_flag:{claude:"--effort", opencode:null},
+      effort_note:"the interactive opencode entry has no effort flag: --variant belongs to opencode run only, and unknown flags are ignored silently",
+      note:"profiles and setup.baseline are decisions, not measurements — ask the user"}' ;;
+
+init)
+  [[ -e "$CFG" ]] && die "refusing to overwrite $CFG (use set-profile / set-lanes / set-setup)"
+  local d; d=$("$0" detect "$REPO")
+
+  # This used to write `profiles: {}` and `base_branch: null` on purpose, so the
+  # first `orch-lane.sh start` in every repo died three separate times before a
+  # lane ever ran. The principle was right — a profile is a decision — and the
+  # execution was a landmine: "make the user decide" was implemented as "fail",
+  # and a tool that fails on first contact does not teach the decision, it just
+  # gets abandoned. Write a working default and SAY what was assumed. Every
+  # value here is overridable with one set-* call, and `show` prints them.
+  #
+  # The three roles are lirbox's, from the tier table in the orchestrator agent:
+  # planner authors criteria (capable — a cheap lane cannot catch bad criteria),
+  # verifier is the last thing between a defect and the remote (capable, and it
+  # is the gate profile), builder types against criteria someone else wrote
+  # (cheap — the gate catches it).
+  local HK="" HM_CAP="" HM_CHEAP=""
+  if   command -v claude   >/dev/null 2>&1; then HK=claude;   HM_CAP=claude-opus-5;  HM_CHEAP=claude-sonnet-5
+  elif command -v opencode >/dev/null 2>&1; then HK=opencode; HM_CAP=""; HM_CHEAP=""
+  elif command -v omp      >/dev/null 2>&1; then HK=omp;      HM_CAP=""; HM_CHEAP=""
+  fi
+
+  local profiles='{}' dflt=null gate=null
+  if [[ -n "$HK" && -n "$HM_CAP" ]]; then
+    # $HK is claude here (the only branch with a known capable model) and
+    # claude resolves a plugin-shipped subagent as `<plugin>:<file>`, not the
+    # bare filename — `agentbox-planner` alone is not in claude's own registry,
+    # only `agentbox:agentbox-planner` is. Getting this wrong is exactly the
+    # failure hk_agent_exists now catches, including in init's own output.
+    profiles=$(jq -n --arg k "$HK" --arg cap "$HM_CAP" --arg cheap "$HM_CHEAP" '{
+      planner:  {kind:$k, model:$cap,   effort:"high",   agent:"agentbox:agentbox-planner"},
+      verifier: {kind:$k, model:$cap,   effort:"high",   agent:"agentbox:agentbox-verifier"},
+      builder:  {kind:$k, model:$cheap, effort:"medium", agent:"agentbox:agentbox-builder"}
+    }')
+    dflt='"builder"'; gate='"verifier"'
+  elif [[ -n "$HK" ]]; then
+    # The harness is known, the model ids are not — naming one would be the
+    # guess this file refuses to make. Declare the roles anyway so the shape is
+    # there, and let validate name the one missing field.
+    profiles=$(jq -n --arg k "$HK" '{
+      planner: {kind:$k, model:"", agent:"agentbox-planner"},
+      verifier:{kind:$k, model:"", agent:"agentbox-verifier"},
+      builder: {kind:$k, model:"", agent:"agentbox-builder"}
+    }')
+    dflt='"builder"'; gate='"verifier"'
+  fi
+
+  write "$(jq -n --argjson d "$d" --argjson p "$profiles" --argjson df "$dflt" --argjson g "$gate" '{
+    version: 1,
+    _comment: "Written by `orch-config.sh init` from what is installed here. Every value is a default, not a decision: change any of it with set-profile / set-lanes / set-setup, and run `validate` after.",
+    profiles: $p,
+    default_profile: $df,
+    lanes: { max_concurrent: ($d.suggested_max_concurrent // 4), ready_timeout_ms: 60000,
+             context_cap_tokens: 300000, base_branch: $d.suggested_base_branch,
+             gate_profile: $g },
+    setup: {
+      install: $d.setup.install, build: $d.setup.build, test: $d.setup.test,
+      baseline: $d.setup.test
+    }
+  }')"
+  print -r -- "wrote $CFG"
+  print -r -- ""
+  print -r -- "ASSUMED — check these before the first wave:"
+  print -r -- "  profiles       $(jq -r '.profiles | to_entries | map("\(.key)=\(.value.kind)/\(.value.model // "?")") | join("  ")' "$CFG")"
+  print -r -- "  base_branch    $(jq -r '.lanes.base_branch // "UNSET"' "$CFG")   (every worktree is cut from it)"
+  print -r -- "  gate_profile   $(jq -r '.lanes.gate_profile // "UNSET"' "$CFG")   (no work leaves without it)"
+  print -r -- "  baseline       $(jq -r '.setup.baseline // "UNSET"' "$CFG")   (how a lane tells a real red from an inherited one)"
+  print -r -- ""
+  "$0" validate "$REPO" || print -r -- "
+Fix the above with set-profile / set-lanes / set-setup, then re-run validate." ;;
+
+validate)
+  need
+  local -a problems
+  jq -e . "$CFG" >/dev/null 2>&1 || die "$CFG is not valid JSON"
+  local n; n=$(jq -r '.profiles | length' "$CFG")
+  (( n > 0 )) || problems+=("no profiles declared — every spawn will be denied")
+  local bad
+  local KINDS; KINDS=$(hk_kinds)
+  local KJSON; KJSON=$(print -r -- "$KINDS" | tr ' ' '\n' | jq -R . | jq -s -c .)
+  bad=$(jq -r --argjson k "$KJSON" '.profiles | to_entries[] | select((.value.kind // "") | IN($k[]) | not) | .key' "$CFG")
+  [[ -z "$bad" ]] || problems+=("profile(s) with missing/unknown kind (want ${KINDS// /|}): $bad")
+  bad=$(jq -r '.profiles | to_entries[] | select((.value.model // "") == "") | .key' "$CFG")
+  [[ -z "$bad" ]] || problems+=("profile(s) with no model: $bad — an unnamed model is the harness default, not a decision")
+  # Harnesses whose interactive entry has no effort flag. Declared effort there
+  # is emitted into a TUI that ignores unknown flags without error, so it reads
+  # as configured and is not.
+  local -a NOEFFORT
+  local k
+  for k in ${=KINDS}; do [[ -n "${HK_EFFORT_FLAG[$k]-}" ]] || NOEFFORT+=("$k"); done
+  if (( $#NOEFFORT )); then
+    local NJSON; NJSON=$(print -rl -- "${NOEFFORT[@]}" | jq -R . | jq -s -c .)
+    bad=$(jq -r --argjson n "$NJSON" '.profiles | to_entries[] | select((.value.effort // "") != "" and (.value.kind | IN($n[]))) | .key' "$CFG")
+    [[ -z "$bad" ]] || problems+=("profile(s) declaring effort on a harness with no effort flag (${(j:, :)NOEFFORT}): $bad — it would be silently ignored")
+  fi
+  # An agent that will not resolve at spawn — a missing file for a
+  # file-carried harness, or a name absent from the harness's own registry —
+  # is a lane that starts clean and says nothing about it.
+  local row pn pk pa ap
+  for row in ${(f)"$(jq -r '.profiles | to_entries[] | "\(.key)\t\(.value.kind // "")\t\(.value.agent // .key)"' "$CFG")"}; do
+    pn="${row%%$'\t'*}"; pa="${row##*$'\t'}"; pk="${${row#*$'\t'}%%$'\t'*}"
+    ap=$(agent_problem "$pk" "$pa" "$REPO") || problems+=("profile '$pn': $ap")
+  done
+  local dp; dp=$(jq -r '.default_profile // ""' "$CFG")
+  if [[ -n "$dp" ]]; then
+    jq -e --arg p "$dp" '.profiles[$p]' "$CFG" >/dev/null 2>&1 || problems+=("default_profile '$dp' is not a declared profile")
+  fi
+  [[ "$(jq -r '.setup.baseline // ""' "$CFG")" != "" ]] || problems+=("setup.baseline is empty — a lane cannot tell a real red from an inherited one")
+  [[ "$(jq -r '.lanes.base_branch // ""' "$CFG")" != "" ]] || problems+=("lanes.base_branch is empty — every worktree is cut from it, so start refuses without it")
+  # This used to be unchecked, so a config validated clean and then died at the
+  # one step that cannot be skipped: gate-guard.sh refuses push, PR and
+  # merge-onto-base for a lane with no code_gate, and `orch-lane.sh gate`
+  # cannot start without a profile to run the gate on. A config that validates
+  # and cannot ship is a config that lied.
+  local gp; gp=$(jq -r '.lanes.gate_profile // ""' "$CFG")
+  if [[ -z "$gp" ]]; then
+    problems+=("lanes.gate_profile is empty — no work can leave this repo without a gate, so this is not optional. Set it: $0 set-lanes --gate-profile <p>")
+  else
+    jq -e --arg p "$gp" '.profiles[$p]' "$CFG" >/dev/null 2>&1 || problems+=("lanes.gate_profile '$gp' is not a declared profile")
+  fi
+  if (( ${#problems} )); then
+    print -u2 -r -- "config at $CFG is not usable:"
+    printf '  - %s\n' "${problems[@]}" >&2
+    exit 1
+  fi
+  print -r -- "config OK: $n profile(s), $CFG" ;;
+
+set-profile)
+  need
+  local NAME="${1:-}"; shift 2>/dev/null || true
+  [[ -n "$NAME" && "$NAME" != -* ]] || die "set-profile needs a profile name"
+  local KIND="" MODEL="" FLAGS="" EFFORT="" AGENT=""
+  while (( $# )); do
+    case "$1" in
+      --kind)   KIND="$2";   shift 2 ;;
+      --model)  MODEL="$2";  shift 2 ;;
+      --flags)  FLAGS="$2";  shift 2 ;;
+      --effort) EFFORT="$2"; shift 2 ;;
+      # The agent the harness actually loads. Defaults to the profile name,
+      # which is right when a lirbox role and its agent share a name and wrong
+      # the moment a repo points a profile at an agent of its own.
+      --agent)  AGENT="$2";  shift 2 ;;
+      *) die "unknown flag: $1" ;;
+    esac
+  done
+  [[ -n "$AGENT" ]] || AGENT="$NAME"
+  hk_known "$KIND" || die "set-profile needs --kind $(hk_kinds | tr ' ' '|') (got '${KIND:-none}')"
+  [[ -n "$MODEL" ]] || die "set-profile needs --model. An unnamed model is the harness default, not a decision."
+  # Which harnesses take a reasoning-effort flag is table data now. opencode's
+  # INTERACTIVE entry — the one herdr starts — has none: --variant exists only
+  # on `opencode run`, and the tui silently ignores unknown flags, so storing
+  # effort for an opencode profile would emit a flag that does nothing and
+  # report success. jcode's entry has none either. claude spells it --effort,
+  # omp spells it --thinking; both are stored the same way here.
+  if [[ -n "$EFFORT" ]]; then
+    local EF="${HK_EFFORT_FLAG[$KIND]-}"
+    [[ -n "$EF" ]] || die "effort is not settable on a $KIND lane — its interactive entry has no
+  effort flag, and unknown flags are ignored without error. Leave it unset
+  rather than store something that cannot take effect."
+    # A known vocabulary is checked; an unknown one is accepted. Refusing a
+    # level a harness actually supports is worse than the spawn error it saves,
+    # and only the harness knows its own set.
+    local EV="${HK_EFFORT_VALUES[$KIND]-}"
+    if [[ -n "$EV" ]]; then
+      [[ " $EV " == *" $EFFORT "* ]] || die "unknown effort '$EFFORT' for $KIND (want: $EV)"
+    fi
+  fi
+  # A profile's agent must resolve on THIS harness — as a file for the
+  # harnesses that carry context that way (omp), or against the harness's own
+  # registry for the ones that carry it as a name (claude, opencode). Checked
+  # at write time, because the alternative is a lane that starts clean and
+  # runs with no invariants — the failure this config exists to prevent, and
+  # the one nobody sees happening.
+  local AP; AP=$(agent_problem "$KIND" "$AGENT" "$REPO") || die "$AP"
+  local fj; fj=$(print -r -- "$FLAGS" | tr ' ' '\n' | grep -v '^$' | jq -R . | jq -s . 2>/dev/null || print -r -- '[]')
+  write "$(jq --arg n "$NAME" --arg k "$KIND" --arg m "$MODEL" --arg e "$EFFORT" \
+              --arg a "$AGENT" --argjson f "$fj" \
+    '.profiles[$n] = ({kind:$k, model:$m}
+        + (if $a != $n then {agent:$a} else {} end)
+        + (if ($f|length)>0 then {flags:$f} else {} end)
+        + (if $e != "" then {effort:$e} else {} end))
+     | .default_profile = (.default_profile // $n)' "$CFG")"
+  print -r -- "profile '$NAME' = $KIND / $MODEL${EFFORT:+ / effort=$EFFORT}$([[ "$AGENT" != "$NAME" ]] && print -rn -- " / agent=$AGENT")${FLAGS:+ / $FLAGS}" ;;
+
+set-lanes)
+  need
+  local MAX="" TO="" CTX="" BASE="" GATE="" MAXR=""
+  while (( $# )); do
+    case "$1" in
+      --max) MAX="$2"; shift 2 ;; --timeout) TO="$2"; shift 2 ;; --context) CTX="$2"; shift 2 ;;
+      --base) BASE="$2"; shift 2 ;; --gate-profile) GATE="$2"; shift 2 ;;
+      --max-restarts) MAXR="$2"; shift 2 ;;
+      *) die "unknown flag: $1" ;;
+    esac
+  done
+  local j; j=$(cat -- "$CFG")
+  [[ -n "$MAX" ]] && j=$(print -r -- "$j" | jq --argjson v "$MAX" '.lanes.max_concurrent=$v')
+  # --timeout is herdr's agent-READINESS wait, not a lane runtime cap. herdr
+  # refuses anything over 300000, and it refuses it at spawn time — which reads
+  # as "the orchestrator is broken", not "the config is wrong". This config once
+  # carried 1800000 (a runtime intent) and every lane start in a 72-hour run
+  # died on invalid_agent_timeout. Refuse it here, where the mistake is made.
+  if [[ -n "$TO" ]]; then
+    [[ "$TO" == <-> ]] || die "--timeout takes milliseconds, got '$TO'"
+    (( TO > 3000 && TO <= 300000 )) || die "--timeout $TO is outside herdr's range.
+  This is how long 'agent start' waits for the harness to become READY
+  (herdr: default 30000, max 300000) — not how long a lane may run.
+  There is no lane runtime cap in this config; use the lane's own timeout."
+    j=$(print -r -- "$j" | jq --argjson v "$TO" '.lanes.ready_timeout_ms=$v')
+  fi
+  [[ -n "$CTX" ]] && j=$(print -r -- "$j" | jq --argjson v "$CTX" '.lanes.context_cap_tokens=$v')
+  if [[ -n "$BASE" ]]; then
+    git -C "$REPO" rev-parse --verify -q "$BASE" >/dev/null 2>&1 \
+      || die "base branch '$BASE' does not exist in $REPO.
+  Every worktree is cut from it; a name that resolves nowhere fails at spawn,
+  not here, and reads as a broken orchestrator."
+    j=$(print -r -- "$j" | jq --arg v "$BASE" '.lanes.base_branch=$v')
+  fi
+  # The gate runs on a declared profile like everything else. It must be one the
+  # project actually declares, or `orch-lane.sh gate` fails at spawn with a
+  # profile lookup miss — which reads as a broken gate rather than a config gap,
+  # and a gate that looks broken is a gate that gets skipped.
+  if [[ -n "$GATE" ]]; then
+    print -r -- "$j" | jq -e --arg p "$GATE" '.profiles[$p]' >/dev/null 2>&1 \
+      || die "profile '$GATE' is not declared in this config.
+  declared: $(print -r -- "$j" | jq -r '.profiles | keys | join(", ")')
+  Add it with set-profile first — the gate reviews AND fixes, so give it a
+  profile capable of both."
+    j=$(print -r -- "$j" | jq --arg v "$GATE" '.lanes.gate_profile=$v')
+  fi
+  # How many times a lane may be restarted before a restart that yielded nothing
+  # is treated as a loop rather than a hard problem. Ported from conductor,
+  # which bounds ROUNDS and then asks whether the unmet set changed — never
+  # dollars, because a spend limit cannot tell a slow problem from a stuck one.
+  if [[ -n "$MAXR" ]]; then
+    [[ "$MAXR" == <-> ]] || die "--max-restarts takes a number, got '$MAXR'"
+    j=$(print -r -- "$j" | jq --argjson v "$MAXR" '.lanes.max_restarts=$v')
+  fi
+  write "$j"; jq -c '.lanes' "$CFG" ;;
+
+set-setup)
+  need
+  local I="" B="" T="" BL=""
+  while (( $# )); do
+    case "$1" in
+      --install) I="$2"; shift 2 ;; --build) B="$2"; shift 2 ;;
+      --test) T="$2"; shift 2 ;;   --baseline) BL="$2"; shift 2 ;;
+      *) die "unknown flag: $1" ;;
+    esac
+  done
+  local j; j=$(cat -- "$CFG")
+  [[ -n "$I"  ]] && j=$(print -r -- "$j" | jq --arg v "$I"  '.setup.install=$v')
+  [[ -n "$B"  ]] && j=$(print -r -- "$j" | jq --arg v "$B"  '.setup.build=$v')
+  [[ -n "$T"  ]] && j=$(print -r -- "$j" | jq --arg v "$T"  '.setup.test=$v')
+  [[ -n "$BL" ]] && j=$(print -r -- "$j" | jq --arg v "$BL" '.setup.baseline=$v')
+  write "$j"; jq -c '.setup' "$CFG" ;;
+
+*) die "usage: orch-config.sh [path|show|detect|init|validate|set-profile|set-lanes|set-setup] [args] [repo]" ;;
+esac

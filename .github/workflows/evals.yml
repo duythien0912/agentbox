@@ -1,0 +1,84 @@
+# Repo-wide regression gate.
+#
+# Every skill's frozen acceptance-check is the durable residue of a bug that was already fixed
+# once. Before this workflow existed, nothing ran them outside a whetstone run targeting that
+# skill — so a fixed bug could come back with nothing watching. It happened: conductor's
+# book-under-flag was fixed, verified, merged, then silently re-accreted across seven runs.
+#
+# This runs every skill's floor + every guarded check on every push and PR.
+name: evals
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Fast gate: floors + every frozen acceptance-check, for every skill.
+  # Milliseconds-to-seconds each. This is the one that must never be skipped.
+  checks:
+    name: floors + frozen checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # lane-config's scripts are zsh on purpose — they parse command lines with
+      # ${(z)} and ${(f)} rather than shelling out to grep, which on the target
+      # machine is a shell function in some contexts and ugrep in others and
+      # returns EMPTY instead of erroring. ubuntu-latest ships no zsh, so its
+      # checks fail at the first subcommand.
+      - name: Install zsh (lane-config scripts)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq zsh
+      - name: Regression gate
+        run: node scripts/evals-all.mjs --fast
+
+      # Mutation-proof the frozen checks. evals-all only proves a green check EXITS 0 — it cannot
+      # tell "the behaviour is present" from "the check stopped looking". Both false-green and
+      # false-red have shipped here (see scripts/prove-checks.mjs). This breaks the invariant each
+      # check claims to guard and requires the check to go RED.
+      - name: Prove the checks still measure
+        run: |
+          set -o pipefail
+          fails=0
+          for d in plugins/agentbox/skills/*/evals/checks-manifest.json; do
+            skill=$(basename "$(dirname "$(dirname "$d")")")
+            echo "── $skill"
+            node scripts/prove-checks.mjs --skill "$skill" || { echo "FAIL $skill"; fails=$((fails+1)); }
+          done
+          echo "---"
+          if [ "$fails" -gt 0 ]; then echo "GATE RED — $fails skill(s) have a check that no longer measures"; exit 1; fi
+          echo "GATE GREEN — every declared mutation produced a RED"
+
+  # Generator regression nets (scripts/test-*.cjs). Slower — arena's clones fixture bundles and
+  # runs their npm suites — so it is a separate job and does not hold up the fast gate.
+  nets:
+    name: generator regression nets
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generator nets
+        run: |
+          set -o pipefail
+          fails=0
+          for f in plugins/agentbox/skills/*/scripts/test-*.cjs; do
+            echo "── $f"
+            node "$f" || { echo "FAIL $f"; fails=$((fails+1)); }
+          done
+          echo "---"
+          if [ "$fails" -gt 0 ]; then echo "GATE RED — $fails generator net(s) failed"; exit 1; fi
+          echo "GATE GREEN — all generator nets passed"

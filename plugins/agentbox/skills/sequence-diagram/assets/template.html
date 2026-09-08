@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<!--
+  SEQUENCE-DIAGRAM TEMPLATE — single HTML file. Renders a time-ordered interaction with
+  Mermaid (sequenceDiagram + autonumber, loaded from CDN) + a NUMBERED side-list that drives
+  a detail panel (Mermaid has no per-message click). NEEDS INTERNET to render.
+
+  HOW TO USE:
+  1. Replace the diagram inside <pre class="mermaid"> … </pre> (between TEMPLATE-SEQ markers)
+     with the real interaction. Use `sequenceDiagram` + `autonumber`, ->> sync, -->> return,
+     alt/opt/loop/par, note over. Line breaks in message text: <br/> only. Both markers gone.
+  2. Replace the STEPLIST array (between TEMPLATE-STEPLIST markers) — one entry per autonumbered
+     message, in order; exactly one entry has crit:true. Both markers gone.
+  3. Replace every {{PLACEHOLDER}}; set DEFAULT_STEP (integer index).
+  Keep the <style> block and the Mermaid init/JS wiring intact.
+  Syntax guide: references/components.md.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sequence — {{TITLE}}</title>
+<style>
+  :root{
+    --ivory:#FAF9F5; --paper:#FFFFFF; --slate:#141413; --slate-soft:#3A3A37;
+    --muted:#6B6B66; --line:#E7E4DC; --line-soft:#F0EEE7;
+    --clay:#D97757; --clay-deep:#B04A3F; --clay-soft:#FBEDE7;
+    --olive:#788C5D; --olive-soft:#EEF1E7; --oat:#E3DACC; --oat-soft:#F3EFE6;
+    --code-bg:#1F1E1B; --code-line:#2E2C28; --kw:#E0A08A; --str:#A6BE83; --com:#6B6B66; --fn:#D8C99B;
+    --radius:14px; --maxw:1180px;
+    --serif:Georgia,'Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ivory);color:var(--slate);font-family:var(--sans);
+    font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  code{font-family:var(--mono);font-size:.86em;background:var(--line-soft);padding:.1em .4em;border-radius:5px}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 32px}
+
+  header.hero{border-bottom:1px solid var(--line)}
+  .hero-inner{padding:50px 0 32px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+  h1.title{font-family:var(--serif);font-weight:600;font-size:36px;line-height:1.18;margin:0 0 14px;letter-spacing:-.01em}
+  .lead{font-size:17px;color:var(--slate-soft);max-width:70ch;margin:0}
+  .lead code{font-size:.9em}
+
+  .layout{display:grid;grid-template-columns:1fr 340px;gap:40px;padding:34px 0 90px;align-items:start}
+  /* min-width:0 lets a wide SVG shrink inside the 1fr track instead of shoving the side panel off-screen */
+  .layout main{min-width:0}
+  /* Fixed viewport-relative height + overflow:hidden so zooming pans inside the box, never grows the page */
+  .chart{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+    height:min(680px,80vh);overflow:hidden}
+  .chart:fullscreen{height:100vh;width:100vw;border-radius:0;background:var(--ivory)}
+  .chart-viewport{position:absolute;inset:0;overflow:hidden;cursor:grab;padding:14px}
+  .chart-viewport.dragging{cursor:grabbing}
+  /* The pan layer carries ONLY translate — zoom resizes the SVG width (crisp), never CSS transform scale */
+  .chart-pan{transform-origin:0 0;display:inline-block}
+  .chart-pan svg{max-width:none;height:auto;display:block}
+  .mermaid{font-family:var(--sans)}
+
+  /* Zoom / fullscreen toolbar */
+  .chart-tools{position:absolute;top:10px;right:10px;z-index:4;display:flex;gap:4px;
+    background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  .chart-tools button{all:unset;cursor:pointer;font-family:var(--mono);font-size:13px;line-height:1;
+    color:var(--slate-soft);padding:6px 9px;border-radius:7px;min-width:18px;text-align:center}
+  .chart-tools button:hover{background:var(--line-soft);color:var(--slate)}
+
+  /* In-fullscreen detail popup (the sticky side panel lives outside the fullscreen element, so mirror it here) */
+  .fs-popup{position:absolute;right:18px;bottom:18px;width:330px;max-width:42vw;z-index:5;display:none;
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px 18px;
+    box-shadow:0 12px 44px rgba(0,0,0,.20)}
+  .chart:fullscreen .fs-popup{display:block}
+  .chart:fullscreen .fs-popup[hidden]{display:none}
+  .fs-popup .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--clay);margin:0 0 8px}
+  .fs-popup h3{font-family:var(--serif);font-size:18px;margin:0 0 8px;padding-right:22px}
+  .fs-popup .meta{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+  .fs-popup .tag{font-family:var(--mono);font-size:11px;color:var(--slate-soft);background:var(--oat-soft);border:1px solid var(--oat);border-radius:20px;padding:2px 9px}
+  .fs-popup p{margin:0 0 10px;color:var(--slate-soft);font-size:14px}
+  .fs-popup pre{background:var(--code-bg);color:#E9E6DE;border-radius:10px;padding:11px 12px;overflow:auto;
+    font-family:var(--mono);font-size:11.5px;line-height:1.55;margin:0;border:1px solid var(--code-line)}
+  .fs-popup pre .kw{color:var(--kw)} .fs-popup pre .str{color:var(--str)} .fs-popup pre .com{color:var(--com)} .fs-popup pre .fn{color:var(--fn)}
+  .fs-popup-close{position:absolute;top:10px;right:12px;all:unset;cursor:pointer;font-size:15px;color:var(--muted);line-height:1}
+  .fs-popup-close:hover{color:var(--slate)}
+  aside{position:sticky;top:24px;display:flex;flex-direction:column;gap:20px}
+
+  /* Legend */
+  .legend{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+  .legend .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  .leg{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--slate-soft);padding:4px 0}
+  .swatch{width:22px;height:14px;border-radius:4px;border:1px solid var(--line);flex:none}
+  .swatch.proc{background:var(--paper)} .swatch.dec{background:var(--oat-soft);border-color:var(--oat)}
+  .swatch.ok{background:var(--olive-soft);border-color:var(--olive)} .swatch.fail{background:var(--clay-soft);border-color:var(--clay)}
+  .swatch.line{height:0;border:none;border-top:2px solid var(--muted)}
+  .swatch.yes{height:0;border:none;border-top:2px solid var(--olive)} .swatch.no{height:0;border:none;border-top:2px solid var(--clay)}
+
+  /* Detail panel */
+  .detail{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
+  .detail .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--clay);margin:0 0 8px}
+  .detail h3{font-family:var(--serif);font-size:20px;margin:0 0 8px}
+  .detail .meta{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+  .detail .tag{font-family:var(--mono);font-size:11px;color:var(--slate-soft);background:var(--oat-soft);border:1px solid var(--oat);border-radius:20px;padding:2px 9px}
+  .detail p{margin:0 0 12px;color:var(--slate-soft);font-size:14.5px}
+  .detail pre{background:var(--code-bg);color:#E9E6DE;border-radius:10px;padding:13px 14px;overflow:auto;
+    font-family:var(--mono);font-size:12px;line-height:1.55;margin:0;border:1px solid var(--code-line)}
+  .detail pre .kw{color:var(--kw)} .detail pre .str{color:var(--str)} .detail pre .com{color:var(--com)} .detail pre .fn{color:var(--fn)}
+  .hint{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:10px}
+
+  footer{border-top:1px solid var(--line);color:var(--muted);font-family:var(--mono);font-size:12px;padding:20px 0 40px}
+  @media(max-width:960px){.layout{grid-template-columns:1fr;gap:24px} aside{position:static}}
+
+  /* Numbered step list */
+  .steplist{margin:0;padding-left:0;list-style:none;counter-reset:s}
+  .steplist li{counter-increment:s;margin:0 0 4px}
+  .steplist li button{all:unset;cursor:pointer;display:block;width:100%;font-size:13px;
+    color:var(--slate-soft);padding:6px 8px;border-radius:8px;line-height:1.4}
+  .steplist li button::before{content:counter(s)". ";font-family:var(--mono);color:var(--muted)}
+  .steplist li button:hover{background:var(--line-soft)}
+  .steplist li.active button{background:var(--oat-soft);color:var(--slate)}
+  .steplist li.crit button::after{content:" ●";color:var(--clay)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <p class="eyebrow">Sequence · {{PROJECT_OR_SUBSYSTEM}}</p>
+    <h1 class="title">{{TITLE — e.g. "What happens when a user logs in"}}</h1>
+    <p class="lead">{{1_3_SENTENCE_LEAD — the interaction this traces and what the messages mean. Click a numbered step for detail.}}</p>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <main>
+    <div class="chart" id="chart">
+      <div class="chart-tools">
+        <button id="zoom-out" title="Zoom out">−</button>
+        <button id="zoom-in" title="Zoom in">+</button>
+        <button id="zoom-reset" title="Reset to 1:1">1:1</button>
+        <button id="zoom-fit" title="Fit to width">Fit</button>
+        <button id="fullscreen-btn" title="Toggle fullscreen">⛶</button>
+      </div>
+      <div class="chart-viewport" id="chart-viewport">
+        <div class="chart-pan" id="chart-pan">
+<pre class="mermaid">
+%% TEMPLATE-SEQ-START — replace with the real interaction, then delete both markers.
+sequenceDiagram
+  autonumber
+  participant U as User
+  participant API as API
+  participant DB as Postgres
+  U->>API: POST /login
+  API->>DB: SELECT user by email
+  DB-->>API: row
+  alt password ok
+    API-->>U: 200 + session
+  else bad password
+    API-->>U: 401
+  end
+%% TEMPLATE-SEQ-END
+</pre>
+        </div>
+      </div>
+      <div class="fs-popup" id="fs-popup" hidden>
+        <button class="fs-popup-close" id="fs-popup-close" title="Close" aria-label="Close">✕</button>
+        <p class="lbl">Step detail</p>
+        <h3 id="p-title">—</h3>
+        <div class="meta" id="p-meta"></div>
+        <div id="p-body"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside>
+    <div class="detail" id="detail">
+      <p class="lbl">Step detail</p>
+      <h3 id="d-title">—</h3>
+      <div class="meta" id="d-meta"></div>
+      <div id="d-body"></div>
+      <p class="hint">Click a numbered step to inspect it.</p>
+    </div>
+
+    <div class="legend">
+      <p class="lbl">Steps</p>
+      <ol id="steplist" class="steplist"></ol>
+    </div>
+  </aside>
+</div>
+
+<footer class="wrap">Sequence diagram · {{PROJECT}} · {{DATE}}</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.min.js"
+        integrity="sha384-yQ4mmBBT+vhTAwjFH0toJXNYJ6O4usWnt6EPIdWwrRvx2V/n5lXuDZQwQFeSFydF"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+  // One entry per autonumbered message, in order. body/code are HTML (escape <,>,& in prose).
+  const STEPLIST = [
+    // TEMPLATE-STEPLIST-START — replace with one entry per message, then delete both markers.
+    { title: "User submits credentials", from: "User", to: "API", kind: "sync", meta: ["POST /login"],
+      body: "<p>The login form posts email + password.</p>" },
+    { title: "Look up the user", from: "API", to: "Postgres", kind: "sync", crit: true, meta: ["SELECT"],
+      body: "<p>The load-bearing read — the trust decision hinges on this row.</p>",
+      code: "<pre><span class='kw'>SELECT</span> id, pw_hash <span class='kw'>FROM</span> users <span class='kw'>WHERE</span> email = $1</pre>" },
+    { title: "Row returned", from: "Postgres", to: "API", kind: "return", meta: ["row"],
+      body: "<p>The user record (or none) comes back.</p>" },
+    { title: "Session issued / rejected", from: "API", to: "User", kind: "return", meta: ["200 / 401"],
+      body: "<p>On match: 200 + session cookie. On mismatch: 401.</p>" },
+    // TEMPLATE-STEPLIST-END
+  ];
+  const DEFAULT_STEP = 0;
+
+  function selectStep(i){
+    const s = STEPLIST[i]; if(!s) return;
+    const chips = [ (s.from && s.to) ? `${s.from} → ${s.to}` : null, s.kind, ...(s.meta||[]) ].filter(Boolean);
+    const chipHTML = chips.map(m=>`<span class="tag">${m}</span>`).join('');
+    const bodyHTML = (s.body||'') + (s.code||'');
+    document.getElementById('d-title').textContent = s.title;
+    document.getElementById('d-meta').innerHTML = chipHTML;
+    document.getElementById('d-body').innerHTML = bodyHTML;
+    // Mirror into the in-fullscreen popup (the side panel is outside the fullscreen element).
+    document.getElementById('p-title').textContent = s.title;
+    document.getElementById('p-meta').innerHTML = chipHTML;
+    document.getElementById('p-body').innerHTML = bodyHTML;
+    const pop = document.getElementById('fs-popup');
+    if(document.fullscreenElement) pop.hidden = false;
+    document.querySelectorAll('#steplist li').forEach((li,j)=>li.classList.toggle('active', j===i));
+  }
+  function renderSteps(){
+    const ol = document.getElementById('steplist');
+    ol.innerHTML = STEPLIST.map((s,i)=>`<li${s.crit?' class="crit"':''}><button data-i="${i}">${s.title}</button></li>`).join('');
+    ol.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>selectStep(+b.dataset.i)));
+  }
+  window.selectStep = selectStep;
+
+  mermaid.initialize({ startOnLoad:false, securityLevel:'loose', theme:'base',
+    themeVariables:{ fontFamily:'-apple-system,Segoe UI,Roboto,sans-serif', primaryColor:'#FFFFFF',
+      primaryBorderColor:'#E7E4DC', primaryTextColor:'#141413', lineColor:'#9A968C',
+      secondaryColor:'#F3EFE6', tertiaryColor:'#FAF9F5', actorBkg:'#FFFFFF', actorBorder:'#E7E4DC',
+      noteBkgColor:'#F3EFE6', noteBorderColor:'#E3DACC' } });
+  // ── Self-contained pan / zoom / fullscreen layer (vanilla JS+CSS, no extra deps) ──────────────
+  // Crisp zoom: resize the SVG's intrinsic width from its viewBox; the pan layer carries translate
+  // only (CSS transform scale on the SVG would rasterize → blur). Scale is clamped 0.2x–4x.
+  const chartEl = document.getElementById('chart');
+  const viewport = document.getElementById('chart-viewport');
+  const panEl = document.getElementById('chart-pan');
+  const MIN_SCALE = 0.2, MAX_SCALE = 4;
+  let scale = 1, tx = 0, ty = 0, baseW = 0;
+
+  function svgEl(){ return panEl.querySelector('svg'); }
+  function clamp(v){ return Math.min(MAX_SCALE, Math.max(MIN_SCALE, v)); }
+  function applyZoom(){
+    const svg = svgEl(); if(!svg || !baseW) return;
+    svg.style.width = (baseW * scale) + 'px';   // width drives zoom — crisp, no raster
+    svg.removeAttribute('height');
+  }
+  function applyPan(){ panEl.style.transform = 'translate(' + tx + 'px,' + ty + 'px)'; }
+  function setZoom(next){ scale = clamp(next); applyZoom(); }
+  function fitToWidth(){
+    const svg = svgEl(); if(!svg || !baseW) return;
+    setZoom(clamp((viewport.clientWidth - 28) / baseW));
+    tx = 0; ty = 0; applyPan();
+  }
+  function resetZoom(){ setZoom(1); tx = 0; ty = 0; applyPan(); }
+
+  function initPanZoom(){
+    const svg = svgEl(); if(!svg) return;
+    baseW = (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width) || svg.getBoundingClientRect().width;
+    fitToWidth();
+
+    // wheel-to-zoom (anchored under the cursor)
+    viewport.addEventListener('wheel', (e)=>{
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.1 : 1/1.1;
+      const before = scale; setZoom(scale * factor);
+      const r = viewport.getBoundingClientRect(), cx = e.clientX - r.left, cy = e.clientY - r.top, k = scale/before;
+      tx = cx - (cx - tx) * k; ty = cy - (cy - ty) * k; applyPan();
+    }, { passive:false });
+
+    // drag-to-pan: no preventDefault / no setPointerCapture on pointerdown → Mermaid node clicks still fire
+    let dragging = false, sx = 0, sy = 0, ox = 0, oy = 0, moved = 0;
+    viewport.addEventListener('pointerdown', (e)=>{
+      dragging = true; moved = 0; sx = e.clientX; sy = e.clientY; ox = tx; oy = ty;
+      viewport.classList.add('dragging');
+    });
+    window.addEventListener('pointermove', (e)=>{
+      if(!dragging) return;
+      tx = ox + (e.clientX - sx); ty = oy + (e.clientY - sy);
+      moved += Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy);
+      applyPan();
+    });
+    window.addEventListener('pointerup', ()=>{ dragging = false; viewport.classList.remove('dragging'); });
+
+    document.getElementById('zoom-in').addEventListener('click', ()=>setZoom(scale * 1.2));
+    document.getElementById('zoom-out').addEventListener('click', ()=>setZoom(scale / 1.2));
+    document.getElementById('zoom-reset').addEventListener('click', resetZoom);
+    document.getElementById('zoom-fit').addEventListener('click', fitToWidth);
+
+    // fullscreen toggle via the Fullscreen API; re-fit on enter/exit
+    document.getElementById('fullscreen-btn').addEventListener('click', ()=>{
+      if(document.fullscreenElement) document.exitFullscreen();
+      else if(chartEl.requestFullscreen) chartEl.requestFullscreen();
+    });
+    document.getElementById('fs-popup-close').addEventListener('click', ()=>{
+      document.getElementById('fs-popup').hidden = true;
+    });
+    document.addEventListener('fullscreenchange', ()=>{
+      const pop = document.getElementById('fs-popup');
+      pop.hidden = !document.fullscreenElement;   // popup is meaningful only inside fullscreen
+      fitToWidth();
+    });
+  }
+
+  mermaid.run({ querySelector:'.mermaid' }).then(()=>{ renderSteps(); selectStep(DEFAULT_STEP); initPanZoom(); });
+</script>
+</body>
+</html>

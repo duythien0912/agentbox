@@ -1,0 +1,2 @@
+{"id":"crit-meaningful-placement","type":"concern","text":"SUBJECTIVE (human-only): the single `:::crit` node should be the genuine architectural control point / trust boundary of the system rather than an arbitrary node, which no deterministic check can judge.","acceptanceCheck":null}
+{"id":"boundary-grouping-quality","type":"concern","text":"SUBJECTIVE (human-only): subgraph boundaries should reflect real systems or layers and not be decorative or over-fragmented, a layout-quality judgment that requires human review of the rendered diagram.","acceptanceCheck":null}

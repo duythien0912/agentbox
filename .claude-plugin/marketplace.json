@@ -1,0 +1,17 @@
+{
+  "name": "agentbox",
+  "description": "Comprehensive developer toolkit featuring 19 skills and 10 agents for architectural diagramming (C4, sequence, flowchart), automated code walkthroughs, durable orchestration (conductor, loom, lanes), and eval-gated optimization (prospector, whetstone, arena).",
+  "owner": {
+    "name": "duythien0912",
+    "email": "duythien0912@users.noreply.github.com"
+  },
+  "plugins": [
+    {
+      "name": "agentbox",
+      "source": "./plugins/agentbox",
+      "description": "Comprehensive developer toolkit featuring 19 skills and 10 agents for architectural diagramming (C4, sequence, flowchart), automated code walkthroughs, durable orchestration (conductor, loom, lanes), and eval-gated optimization (prospector, whetstone, arena).",
+      "category": "productivity",
+      "keywords": ["agentbox", "pr", "pull-request", "code-review", "html", "writeup", "orchestration", "diagram", "evals"]
+    }
+  ]
+}
