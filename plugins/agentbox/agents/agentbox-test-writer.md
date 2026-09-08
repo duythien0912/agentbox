@@ -1,6 +1,6 @@
 ---
 name: agentbox-test-writer
-description: "[Conductor Gate / TDD Worker] Writes failing tests FIRST (tryve E2E YAML and/or unit) from acceptance criteria before implementation. Confirms tests fail for the right reason. Auto-spawned by conductor RED gate (--agent-red), or usable standalone for test-first development."
+description: "Author failing acceptance tests prior to implementation. Translates acceptance criteria into runnable E2E or unit tests that fail for the targeted behavior. Triggered by conductor RED gate (--agent-red) or standalone test-driven development."
 tools: Read, Write, Bash, Grep, Glob
 color: cyan
 ---

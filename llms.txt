@@ -19,21 +19,21 @@ bash scripts/setup-omp.sh
 
 ## Skills Catalog (19 Skills)
 
-- `agentbox:guide`: Interactive concierge router mapping user goals to the right skill or agent.
-- `agentbox:pr-writeup`: Turn any pull request into a self-contained HTML writeup (TL;DR, tour, test plan).
-- `agentbox:plan-deck`: Turn a spec into an HTML implementation plan (timeline, data flow, mockups, risks).
-- `agentbox:codewalk`: Trace a code path into a self-contained HTML walkthrough with file:line refs.
-- `agentbox:flowchart`: Interactive Mermaid flowchart with per-node detail panels (CDN rendering).
-- `agentbox:component-diagram`: Interactive component diagram with boundaries and typed dependencies.
-- `agentbox:sequence-diagram`: Time-ordered sequence diagram with step-driven detail panel.
-- `agentbox:c4-model`: LikeC4 multi-view architectural diagrams (Container, Component, Landscape).
-- `agentbox:deep-understanding`: Interactive tutor assessing and quizzing understanding of a diff or subsystem.
-- `agentbox:conductor`: Durable workflow runner with crash resume, worktree isolation, and enforcement gates.
-- `agentbox:prospector`: Sequential keep-or-discard hill-climbing loop for code scalars (perf, memory, latency).
-- `agentbox:whetstone`: Overnight eval-gated skill improver grinding a backlog through frozen checks.
+- `agentbox:guide`: Interactive concierge router mapping goals to skills and agents.
+- `agentbox:pr-writeup`: Generates self-contained HTML pull request writeups with file tours and test plans.
+- `agentbox:plan-deck`: Transforms specifications into structured HTML implementation decks.
+- `agentbox:codewalk`: Creates interactive HTML code walkthroughs with file:line anchors.
+- `agentbox:flowchart`: Generates interactive Mermaid flowcharts with per-node inspector panels.
+- `agentbox:component-diagram`: Generates interactive component architecture diagrams with typed dependencies.
+- `agentbox:sequence-diagram`: Generates interactive sequence diagrams with step-driven detail panels.
+- `agentbox:c4-model`: Generates LikeC4 multi-view architectural diagrams via containerized renderer.
+- `agentbox:deep-understanding`: Interactive tutor assessing and quizzing understanding of diffs and subsystems.
+- `agentbox:conductor`: Durable workflow runner with crash-resilience, worktree isolation, and enforcement gates.
+- `agentbox:prospector`: Sequential keep-or-discard hill-climbing loop optimizing objective code scalars.
+- `agentbox:whetstone`: Overnight eval-gated skill improver resolving backlogs through frozen checks.
 - `agentbox:arena`: Reproducible pairwise leaderboard evaluating conductor outputs across test fixtures.
 - `agentbox:loom`: Graph-shaped delivery loop with fork/rejoin regions, verified invariants, and browser preview.
-- `agentbox:lanes`: External-agent execution model with append-only ledger and state drift reconciliation.
+- `agentbox:lanes`: External-agent execution model with append-only ledger and state reconciliation.
 - `agentbox:lane-config`: Per-repo orchestration configuration for model effort, lane caps, and timeouts.
 - `agentbox:skill-lint`: Deterministic analyzer auditing word budgets, structural tags, and triggers.
 - `agentbox:plan-check`: Pre-flight plan audit against codebase evidence emitting GO/NO-GO reports.
@@ -42,22 +42,22 @@ bash scripts/setup-omp.sh
 ## Agents Catalog (10 Agents)
 
 ### Directly Usable Subagents (Public)
-- `agentbox-planner`: Scopes goals into grounded code decomposition and executable acceptance criteria.
-- `agentbox-builder`: Implements scoped slice in an isolated worktree against external acceptance criteria.
-- `agentbox-verifier`: Independently verifies results at a named SHA; proves checks can fail; reports numbers.
-- `agentbox-code-reviewer`: Reviews changed code on a branch and fixes Critical/High findings in one pass.
+- `agentbox-planner`: Decomposes goals into grounded code slices and checkable acceptance criteria with baselines.
+- `agentbox-builder`: Implements scoped slices inside isolated worktrees against written acceptance criteria.
+- `agentbox-verifier`: Independently verifies results at named commit SHAs with paired failure and pass proofs.
+- `agentbox-code-reviewer`: Reviews changed code on a branch and resolves Critical/High findings in one pass.
 
 ### Automated Gate Workers (Conductor / Lanes)
-- `agentbox-test-writer`: Writes failing tests FIRST (RED step) from acceptance criteria.
-- `agentbox-tryve-enhancer`: Hardens coverage for error paths, boundaries, auth, and concurrency.
-- `agentbox-docs-writer`: Generates concise implementation summaries under `docs/changes/`.
-- `agentbox-web-verifier`: Web E2E testing writing Playwright specs and capturing viewport screenshots.
-- `agentbox-mobile-verifier`: Mobile app verification across React Native, Flutter, and native simulators.
-- `agentbox-herdr-orchestrator`: Drives multi-agent sessions across external panes with strict adjudication.
+- `agentbox-test-writer`: Authors failing acceptance tests prior to implementation.
+- `agentbox-tryve-enhancer`: Hardens test coverage against implementation diffs (error paths, boundaries, auth).
+- `agentbox-docs-writer`: Documents completed changes into docs/changes/ with structured frontmatter.
+- `agentbox-web-verifier`: Verifies UI-touching web changes end-to-end with Playwright specs and screenshots.
+- `agentbox-mobile-verifier`: Verifies mobile apps across React Native, Flutter, iOS, and Android simulators.
+- `agentbox-herdr-orchestrator`: Orchestrates multi-agent sessions across external panes with strict adjudication.
 
 ## Documentation Links
 
 - Architecture Guide: [README.md](README.md)
-- Agent Instructions & Invariants: [CLAUDE.md](CLAUDE.md)
+- Agent Directives & Invariants: [CLAUDE.md](CLAUDE.md)
 - Contributing & Testing Tiers: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Plugin Directory Architecture: [plugins/README.md](plugins/README.md)

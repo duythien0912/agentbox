@@ -1,6 +1,6 @@
 ---
 name: agentbox-tryve-enhancer
-description: "[Conductor Gate / Test Hardener] Hardens test coverage from the engineering perspective — error paths, boundaries, auth, concurrency, limits. Auto-spawned by conductor TestGate (--agent-tests), or usable standalone after happy-path tests pass."
+description: "Harden test coverage against implementation diffs. Generates tests for unhandled error paths, boundaries, auth, concurrency, and resource limits. Triggered by conductor TestGate (--agent-tests) or post-implementation test hardening."
 tools: Read, Write, Edit, Bash, Grep, Glob
 color: purple
 ---

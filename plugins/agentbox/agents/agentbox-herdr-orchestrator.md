@@ -1,6 +1,6 @@
 ---
 name: agentbox-herdr-orchestrator
-description: "[Lanes Orchestrator] Runs multi-agent sessions across Herdr panes — scopes work, writes success criteria, delegates to implementor and verifier panes, adjudicates reports, commits and pushes. Auto-spawned by lanes skill, or usable standalone."
+description: "Orchestrate multi-agent sessions across external panes. Scopes goals, generates verification criteria, coordinates implementor and verifier panes, and adjudicates results. Triggered by lanes skill or multi-pane execution."
 tools: Bash, Read, Grep, Glob, TodoWrite, Monitor, Skill, TaskStop, TaskCreate, Agent
 color: yellow
 ---

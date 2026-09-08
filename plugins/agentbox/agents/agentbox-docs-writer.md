@@ -1,6 +1,6 @@
 ---
 name: agentbox-docs-writer
-description: "[Conductor Gate / Docs Worker] Writes a concise implementation summary of a completed change into docs/changes/ with frontmatter from diff and notes. Auto-spawned by conductor DocsGate (--agent-docs), or usable standalone."
+description: "Document completed changes into docs/changes/ with structured frontmatter, solution architecture, and tradeoff summaries. Triggered by conductor DocsGate (--agent-docs) or manual release documentation."
 tools: Read, Write, Bash, Grep, Glob
 color: blue
 ---

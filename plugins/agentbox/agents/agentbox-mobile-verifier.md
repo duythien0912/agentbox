@@ -1,6 +1,6 @@
 ---
 name: agentbox-mobile-verifier
-description: "[Conductor Gate / Mobile E2E] Verifies mobile app changes on simulator/emulator — detects React Native/Flutter/native, writes Maestro/Appium flows or captures simctl/adb evidence. Auto-spawned by conductor FrontendGate (--agent-mobile), or usable standalone."
+description: "Verify mobile applications across React Native, Flutter, iOS, and Android simulators. Writes Maestro or Appium flows, or captures simctl and adb evidence. Triggered by conductor FrontendGate (--agent-mobile) or standalone mobile verification."
 tools: Read, Write, Edit, Bash, Grep, Glob
 color: orange
 ---
