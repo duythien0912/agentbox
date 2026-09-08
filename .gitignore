@@ -82,3 +82,6 @@ plan-check-*.html
 
 # Local Oh My Pi runtime / bridge
 .omp/
+
+# Local agentbox-c4
+agentbox-c4
