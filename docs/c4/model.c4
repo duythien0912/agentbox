@@ -1,6 +1,6 @@
-// C4 model of the agentbox repo — a personal Claude Code plugin marketplace.
-// Traced from README.md, CLAUDE.md, CONTRIBUTING.md, .claude-plugin/marketplace.json
-// and plugins/agentbox/ (skills/, agents/). Source of truth: this file.
+// C4 model of the agentbox repo — personal Claude Code plugin marketplace & tooling platform.
+// Grounded in README.md, CLAUDE.md, CONTRIBUTING.md, .claude-plugin/marketplace.json,
+// plugins/agentbox/ (19 skills, 10 agents, hooks, scripts). Source of truth: this file.
 
 specification {
   element actor {
@@ -13,7 +13,7 @@ specification {
   element container
   element component
 
-  // design-lineage (code provenance), visually distinct from runtime edges
+  // Lineage / architectural pattern relationships
   relationship lineage {
     line dotted
     color muted
@@ -22,167 +22,281 @@ specification {
 
 model {
   dev = actor 'Developer' {
-    description 'duythien0912 — installs the marketplace, invokes skills by describing tasks, reviews the PRs the loop skills open'
+    description 'duythien0912 / engineer — installs agentbox marketplace, invokes skills by describing tasks, reviews generated artifacts and PRs'
   }
 
-  claude = external 'Claude Code' {
-    technology 'CLI'
-    description 'Host CLI: registers the marketplace, auto-discovers skills/agents from the plugin, triggers skills on their frontmatter descriptions, runs subagents and the Workflow tool'
+  claude = external 'Claude Code CLI' {
+    technology 'CLI / Node.js'
+    description 'Host runtime: registers marketplace, auto-discovers skills/agents from plugins/agentbox, evaluates frontmatter triggers, runs subagents and Workflow tool'
   }
 
-  dockerd = external 'Docker Daemon' {
-    description 'Runs the pinned LikeC4 toolchain image in a throwaway container for the c4-model skill; nothing installed on the host'
+  omp = external 'Oh My Pi (omp)' {
+    technology 'Bun / Node.js VM'
+    description 'Alternative host runtime: persistent JS kernel, workpool(), agent(), and hub coordination'
   }
 
   github = external 'GitHub' {
-    description 'Hosts the marketplace repo (duythien0912/agentbox); receives the review PRs opened by prospector/whetstone (never auto-merged)'
+    technology 'Cloud Git / API'
+    description 'Hosts duythien0912/agentbox, receives optimization and delivery PRs (never auto-merged), hosts issue tracker for user feedback'
   }
 
-  agentbox = system 'agentbox Marketplace' {
-    description 'Personal Claude Code plugin marketplace: one plugin ("agentbox") holding skills and agents'
+  dockerd = external 'Docker & Harbor' {
+    technology 'Docker Daemon / microVMs'
+    description 'Runs pinned toolchain containers (LikeC4 for c4-model) and containerized Tier-3 behavioral test runs via Harbor'
+  }
 
-    artifactSkills = container 'HTML-Artifact Skills' {
-      technology 'SKILL.md + scripts/ + references/ + assets/'
-      description 'Family 1: each skill emits one self-contained HTML file'
+  herdr = external 'Herdr Multiplexer' {
+    technology 'tmux / CLI'
+    description 'Multiplexes interactive agent processes across terminal panes and diverse AI harnesses (Claude, Pi, Codex, OpenCode)'
+  }
 
-      prWriteup = component 'pr-writeup' {
-        description 'Turns a pull request into a reviewer-facing HTML write-up (TL;DR, motivation, file-by-file tour, test plan)'
-      }
-      planDeck = component 'plan-deck' {
-        description 'Turns a spec/task into an HTML implementation plan (milestone timeline, data-flow, risks, open questions)'
-      }
-      codewalk = component 'codewalk' {
-        description 'Traces ONE path through a real codebase into an HTML walkthrough with verified file:line steps'
+  agentbox = system 'agentbox Platform' {
+    description 'Personal Claude Code plugin marketplace & autonomous engineering toolkit: 19 skills, 10 subagents, session policy hooks, durable loops'
+
+    manifest = container 'Plugin Manifest & Discovery' {
+      technology 'JSON / .claude-plugin'
+      description 'Declares plugin identity, marketplace registration, and auto-discovery routes for skills, agents, and hooks'
+    }
+
+    artifactSkills = container 'Visual & Artifact Skills' {
+      technology 'SKILL.md + assets/ + templates'
+      description 'Family 1: generates self-contained, interactive HTML visualizers, diagrams, and explanation decks'
+
+      c4model = component 'c4-model' {
+        technology 'LikeC4 DSL / Docker'
+        description 'Builds multi-view interactive architecture diagrams (landscape → containers → components) into offline-viewable HTML'
       }
       flowchart = component 'flowchart' {
-        technology 'Mermaid'
-        description 'Branching process as an interactive HTML flowchart; ships headless assets/validate.mjs that catches Mermaid label-escaping bugs'
+        technology 'Mermaid / HTML'
+        description 'Interactive branching pipeline flowcharts with per-node inspector panels and headless syntax validator'
       }
       componentDiagram = component 'component-diagram' {
-        technology 'Mermaid'
-        description 'Static structure as an interactive HTML component diagram (subgraph boundaries, typed dependency edges)'
+        technology 'Mermaid / HTML'
+        description 'System component diagrams with boundary boxes, typed dependencies, and pan/zoom interaction'
       }
       sequenceDiagram = component 'sequence-diagram' {
-        technology 'Mermaid'
-        description 'Time-ordered interaction as an interactive HTML sequence diagram with a clickable numbered step list'
+        technology 'Mermaid / HTML'
+        description 'Time-ordered interaction sequence diagrams with step-driven detail drawer'
       }
-      c4model = component 'c4-model' {
-        technology 'LikeC4'
-        description 'One .c4 source built into a single offline-viewable interactive HTML page (landscape → container → component drill-down)'
+      prWriteup = component 'pr-writeup' {
+        technology 'HTML / Tailwind'
+        description 'Converts pull requests into self-contained reviewer tours with file diff breakdowns, risk analysis, and test plans'
       }
-      planCheck = component 'plan-check' {
-        description 'Pressure-tests a plan/runbook and emits an HTML verification report with a GO / GO-WITH-CONDITIONS / NO-GO verdict'
+      codewalk = component 'codewalk' {
+        technology 'HTML / CSS'
+        description 'Traces execution paths through real codebases with verified file:line references and gotcha callouts'
+      }
+      planDeck = component 'plan-deck' {
+        technology 'HTML / CSS'
+        description 'Turns specifications into implementation decks with milestone timelines, data flows, and risk matrices'
+      }
+      deepUnderstanding = component 'deep-understanding' {
+        technology 'Markdown / Tutor'
+        description 'Interactive Socratic tutor: assesses knowledge gaps and quizzes the human until verified concept mastery'
       }
     }
 
-    loopSkills = container 'Orchestration / Loop Skills' {
-      technology 'deterministic JS conductor + worker subagents'
-      description 'Family 2: one shared backbone — a pure-JS conductor script (generated by scaffold-*.cjs, never hand-edited) drives full-tool worker subagents; all side effects live in the workers'
+    orchestrationLoops = container 'Orchestration Engines' {
+      technology 'Pure JS Conductors + Subagent Workers'
+      description 'Family 2: durable, crash-resumable workflow runners executing multi-agent pipelines with Definition-of-Done gates'
 
       conductor = component 'conductor' {
-        technology 'scaffold-workflow.cjs'
-        description 'Durable, crash/restart-resumable multi-subagent Workflow runs: on-disk JSON state, worktree isolation, opt-in enforcement gates, cost report; leaves a wf/<name> branch; Writeup phase promotes delivery artifacts into docs/changes/'
+        technology 'scaffold-workflow.cjs / Workflow'
+        description 'Durable workflow runner: disk-backed state (.workflows/), worktree isolation, Definition-of-Done gates, and artifact promotion'
       }
+      loom = component 'loom' {
+        technology 'scaffold-loom.cjs / Graph DAG'
+        description 'Graph-shaped delivery engine: executes reshapeable DAGs with conditional back-edges, fork/rejoin invariant validation, and browser preview'
+      }
+      lanes = component 'lanes' {
+        technology 'orch-lane.sh / DuckDB'
+        description 'External-agent execution model: manages independent agent processes across panes/worktrees with append-only ledger and DuckDB views'
+      }
+      laneConfig = component 'lane-config' {
+        technology 'orch-config.sh / JSON'
+        description 'Per-project orchestration configuration: validates harness kinds, model policies, timeout caps, and worker profiles'
+      }
+
+      loom -[lineage]-> conductor 'extends conductor with reshapeable DAG back-edges'
+      lanes -[lineage]-> conductor 'moves from in-session subagents to durable external processes'
+    }
+
+    evalOptEngines = container 'Eval & Optimization Engines' {
+      technology 'Node.js / Harbor / Evals'
+      description 'Family 3: automated hill-climbing, regression benchmarking, and plan pre-flight verification engines'
+
       prospector = component 'prospector' {
         technology 'scaffold-optimize.cjs'
-        description 'Sequential keep-or-discard hill-climb of ONE surface against an auto-proposed numeric metric + hard correctness gate, on a per-run opt/<goal>-<ts> branch'
+        description 'Sequential keep-or-discard hill-climbing optimizer: optimizes a target metric against hard correctness gates on opt/ branches'
       }
       whetstone = component 'whetstone' {
         technology 'scaffold-improve.cjs'
-        description 'Overnight eval-gated skill improver: grinds the feedback/<skill>.jsonl backlog through a deterministic floor + per-item frozen acceptance check, on a per-run improve/<skill>-<ts> branch'
+        description 'Overnight eval-gated skill improver: grinds feedback/<skill>.jsonl against frozen baseline checks on improve/ branches'
+      }
+      arena = component 'arena' {
+        technology 'scaffold-arena.cjs'
+        description 'Pairwise tournament engine: evaluates competing conductor configurations across standardized fixtures to rank performance'
+      }
+      planCheck = component 'plan-check' {
+        technology 'validate.mjs / 4-Quadrant'
+        description 'Pre-flight plan auditor: verifies goal coverage, task graph DAG, blind spots, and execution shape before launch'
       }
 
-      prospector -[lineage]-> conductor 'reuses durable resumable backbone'
-      whetstone -[lineage]-> prospector 'forks the two-layer loop, swaps scalar hill-climb for binary GREEN gate'
+      prospector -[lineage]-> conductor 'builds upon durable resume state machine'
+      whetstone -[lineage]-> prospector 'replaces scalar metric hill-climb with discrimination-gated frozen checks'
+      arena -[lineage]-> conductor 'benchmarks and scores conductor configurations across fixtures'
     }
 
-    metaSkills = container 'Interactive & Meta Skills' {
-      description 'Skills that emit no HTML artifact: a tutoring loop and a deterministic skill linter'
+    routerAndQuality = container 'Routing & Quality Control' {
+      technology 'Node.js / Markdown'
+      description 'Entry-point concierge router, static skill quality linter, and feedback harvesting'
 
-      deepUnderstanding = component 'deep-understanding' {
-        description 'Interactive tutor: assesses, fills gaps, and quizzes the human until mastery of a PR/change/subsystem is verified'
+      guide = component 'guide' {
+        description 'Concierge router: maps developer JTBD requests to appropriate skills, suggests flags, and explains workflows'
       }
       skillLint = component 'skill-lint' {
-        description 'Deterministic analyzer of the SKILL.md files themselves: word budget, XML tag balance, weak triggers, oversized references; reports, never edits'
+        technology 'analyze.cjs'
+        description 'Static analyzer for SKILL.md: checks verbosity budget, XML balance, trigger keyword quality, and asset sizing'
+      }
+      feedback = component 'feedback' {
+        technology 'scrub.cjs'
+        description 'Scans and scrubs session notes to file sanitized issues on GitHub that seed whetstone improvement backlogs'
       }
     }
 
-    agents = container 'Enforcement-Gate Agents' {
-      technology 'agents/*.md (frontmatter + system prompt)'
-      description 'Generic subagents — the default enforcement gates for conductor, also usable standalone'
+    subagents = container 'Subagent Roster' {
+      technology 'agents/*.md (System Prompts)'
+      description '10 purpose-built subagents categorized into public direct-use agents and automated gate workers'
 
-      testWriter = component 'agentbox-test-writer' {
-        description 'Test-first (RED): writes failing tryve-E2E/unit tests from acceptance criteria before implementation'
+      planner = component 'agentbox-planner' {
+        description 'Public agent: scopes goals into executable slices and observable command-level acceptance criteria'
       }
-      tryveEnhancer = component 'agentbox-tryve-enhancer' {
-        description 'Hardens coverage from the diff: error paths, boundaries, auth, concurrency'
+      builder = component 'agentbox-builder' {
+        description 'Public agent: implements scoped slices inside isolated worktrees, stopping at first red condition'
+      }
+      verifier = component 'agentbox-verifier' {
+        description 'Public agent: objectively verifies slice results against acceptance criteria at target SHA without fixing'
       }
       codeReviewer = component 'agentbox-code-reviewer' {
-        description 'Reviews changed code and fixes Critical/High findings, keeping the build green'
+        description 'Public agent: reviews code changes for critical/high defects and fixes them while maintaining green build'
+      }
+      testWriter = component 'agentbox-test-writer' {
+        description 'Gate worker: writes failing tests (RED-first) from acceptance criteria prior to implementation'
+      }
+      tryveEnhancer = component 'agentbox-tryve-enhancer' {
+        description 'Gate worker: hardens test coverage on diffs, targeting boundary cases, auth, errors, and concurrency'
       }
       docsWriter = component 'agentbox-docs-writer' {
-        description 'Writes a concise implementation summary into docs/changes/ from the diff + goal + notes'
+        description 'Gate worker: writes concise implementation notes into docs/changes/ from diffs and goals'
       }
       webVerifier = component 'agentbox-web-verifier' {
-        technology 'Playwright → browser-MCP → OS-script'
-        description 'Web half of the frontend gate: Playwright E2E specs + per-viewport screenshot/console evidence'
+        technology 'Playwright / Puppeteer'
+        description 'Gate worker: writes Playwright E2E tests and captures multi-viewport screenshot and console evidence'
       }
       mobileVerifier = component 'agentbox-mobile-verifier' {
         technology 'Maestro / Appium / simctl / adb'
-        description 'Mobile half of the frontend gate: detects RN/Flutter/native, writes E2E flows, falls back to raw evidence capture'
+        description 'Gate worker: detects mobile stacks and verifies mobile flows or raw UI evidence'
       }
+      herdrOrchestrator = component 'agentbox-herdr-orchestrator' {
+        technology 'tmux / Herdr'
+        description 'Orchestrator agent: manages external panes, dispatches tasks to panes, adjudicates evidence, and advances lanes'
+      }
+    }
+
+    policyHooks = container 'Session Policy Hooks' {
+      technology 'hooks.json + Zsh/Bash'
+      description 'Lifecycle hooks intercepting PreToolUse, PostToolUse, and Stop events to enforce safety, policy, and DoD gates'
+
+      paneGuard = component 'pane-guard.sh' {
+        description 'PreToolUse Bash hook: prevents orchestrator agents from illegally editing implementation code directly'
+      }
+      modelPolicy = component 'model-policy.sh' {
+        description 'PreToolUse Bash hook: enforces declared model and effort profiles from orchestration config'
+      }
+      gateGuard = component 'gate-guard.sh' {
+        description 'PreToolUse Bash hook: validates evidence and criteria satisfaction before allowing phase progression'
+      }
+      laneLedger = component 'lane-ledger.sh' {
+        description 'PostToolUse Bash hook: automatically logs tool execution events to run ledger'
+      }
+      laneGate = component 'lane-gate.sh' {
+        description 'Stop hook: blocks session exit when unfinished work or unverified gates remain'
+      }
+    }
+
+    runtimeState = container 'Runtime Stores & Worktrees' {
+      technology 'JSON / DuckDB / Git Worktrees'
+      description 'Git-ignored durable execution state, append-only ledgers, DuckDB views, and isolated checkouts'
     }
   }
 
-  dev -> claude 'describes tasks to' 'CLI'
-  dev -> github 'reviews and merges the loop-skill PRs on'
-  claude -> agentbox 'registers marketplace, discovers plugin + skills from .claude-plugin/marketplace.json' '/plugin marketplace add'
-  claude -> agentbox.artifactSkills 'invokes on description trigger'
-  claude -> agentbox.loopSkills 'invokes on description trigger'
-  claude -> agentbox.metaSkills 'invokes on description trigger'
-  claude -> agentbox.agents 'dispatches as subagents'
+  // Inter-system and Container Interactions
+  dev -> claude 'invokes skills via prompt / triggers' 'CLI'
+  dev -> omp 'runs workflows via persistent VM' 'CLI'
+  dev -> github 'reviews & merges pull requests' 'HTTPS'
 
-  agentbox.loopSkills.conductor -> claude 'drives the Workflow tool (deterministic JS conductor + subagent fan-out)'
-  agentbox.loopSkills.prospector -> claude 'drives the Workflow tool'
-  agentbox.loopSkills.whetstone -> claude 'drives the Workflow tool'
-  agentbox.loopSkills.conductor -> agentbox.agents 'dispatches as default enforcement gates'
-  agentbox.loopSkills.prospector -> github 'opens optimization PR for review, never merges' 'gh CLI'
-  agentbox.loopSkills.whetstone -> github 'opens improvement PR for review, never merges' 'gh CLI'
-  agentbox.artifactSkills.c4model -> dockerd 'runs LikeC4 toolchain in throwaway container' 'ghcr.io/likec4/likec4:1.58.0'
-  agentbox.metaSkills.skillLint -> agentbox.artifactSkills 'audits SKILL.md files of'
-  agentbox.metaSkills.skillLint -> agentbox.loopSkills 'audits SKILL.md files of'
-  agentbox.metaSkills.skillLint -> agentbox.metaSkills.deepUnderstanding 'audits SKILL.md of (lints every skill, itself included)'
-  agentbox.metaSkills.deepUnderstanding -> dev 'quizzes until mastery is verified'
+  claude -> agentbox.manifest 'reads plugin configuration & triggers' 'JSON'
+  omp -> agentbox.manifest 'links skills & agents via setup-omp.sh' 'Symlink'
+
+  claude -> agentbox.routerAndQuality 'routes requests via'
+  claude -> agentbox.artifactSkills 'executes to produce visual output'
+  claude -> agentbox.orchestrationLoops 'launches multi-agent workflows'
+  claude -> agentbox.evalOptEngines 'launches optimization & audit runs'
+  claude -> agentbox.subagents 'spawns specialized agents'
+  claude -> agentbox.policyHooks 'triggers lifecycle intercepts' 'STDIN/STDOUT'
+
+  agentbox.artifactSkills.c4model -> dockerd 'executes LikeC4 compiler container' 'Docker CLI'
+  agentbox.evalOptEngines -> dockerd 'executes behavioral test containers' 'Harbor CLI'
+
+  agentbox.orchestrationLoops.conductor -> agentbox.runtimeState 'persists checkpoint state to .workflows/' 'JSON'
+  agentbox.orchestrationLoops.lanes -> agentbox.runtimeState 'records ledger & queries DuckDB in .orchestration/' 'DuckDB / JSON'
+  agentbox.orchestrationLoops.lanes -> herdr 'spawns & manages external agent panes' 'CLI'
+  agentbox.orchestrationLoops.conductor -> agentbox.subagents 'dispatches gate workers'
+  agentbox.orchestrationLoops.lanes -> agentbox.subagents.herdrOrchestrator 'runs as execution driver'
+
+  agentbox.evalOptEngines.prospector -> github 'opens optimization PR (no auto-merge)' 'gh CLI'
+  agentbox.evalOptEngines.whetstone -> github 'opens skill improvement PR (no auto-merge)' 'gh CLI'
+  agentbox.evalOptEngines.arena -> github 'opens leaderboard PR' 'gh CLI'
+  agentbox.routerAndQuality.feedback -> github 'files sanitized issue' 'gh CLI'
+
+  agentbox.routerAndQuality.skillLint -> agentbox.artifactSkills 'statically lints SKILL.md'
+  agentbox.routerAndQuality.skillLint -> agentbox.orchestrationLoops 'statically lints SKILL.md'
+  agentbox.routerAndQuality.skillLint -> agentbox.evalOptEngines 'statically lints SKILL.md'
 }
 
 views {
   view index {
-    title 'agentbox — System Landscape'
+    title 'agentbox — System Landscape (Level 1 Context)'
     include *
   }
 
   view of agentbox {
-    title 'agentbox Marketplace — Containers'
-    include *, dev, claude, dockerd, github
+    title 'agentbox Platform — Containers (Level 2)'
+    include *, dev, claude, omp, github, dockerd, herdr
   }
 
   view of agentbox.artifactSkills {
-    title 'HTML-Artifact Skills — Components'
+    title 'Visual & Artifact Skills — Components (Level 3)'
     include *, claude, dockerd
   }
 
-  view of agentbox.loopSkills {
-    title 'Orchestration / Loop Skills — Components'
-    include *, claude, github, agentbox.agents
+  view of agentbox.orchestrationLoops {
+    title 'Orchestration Engines — Components (Level 3)'
+    include *, claude, herdr, agentbox.runtimeState, agentbox.subagents
   }
 
-  view of agentbox.metaSkills {
-    title 'Interactive & Meta Skills — Components'
-    include *, dev, agentbox.artifactSkills, agentbox.loopSkills
+  view of agentbox.evalOptEngines {
+    title 'Eval & Optimization Engines — Components (Level 3)'
+    include *, claude, github, dockerd, agentbox.orchestrationLoops.conductor
   }
 
-  view of agentbox.agents {
-    title 'Enforcement-Gate Agents — Components'
-    include *, claude, agentbox.loopSkills.conductor
+  view of agentbox.subagents {
+    title 'Subagent Roster — Components (Level 3)'
+    include *, claude, agentbox.orchestrationLoops
+  }
+
+  view of agentbox.policyHooks {
+    title 'Session Policy Hooks — Components (Level 3)'
+    include *, claude, agentbox.orchestrationLoops
   }
 }
