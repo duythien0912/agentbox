@@ -98,7 +98,7 @@ The frozen criterion:
 ```
 
 > **Condition (plan-check, 2026-07-13) — absolute path.** The `check` command runs **inside the
-> target project's worktree** (`dodgate-verify.txt:4`), but `prose-lint.mjs` ships in the lirbox
+> target project's worktree** (`dodgate-verify.txt:4`), but `prose-lint.mjs` ships in the agentbox
 > plugin dir. A bare `node .../prose-lint.mjs` won't resolve from an arbitrary worktree, and
 > `${CLAUDE_PLUGIN_ROOT}` is a skill-context var, not guaranteed in a bare shell. So the step-1c
 > probe must resolve the **absolute** plugin path at DoD-acquisition and freeze THAT into the

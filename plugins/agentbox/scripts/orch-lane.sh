@@ -41,7 +41,7 @@ resolve_profile() {
   [[ -n "$KIND" ]] || die "profile '$p' is not declared for this project.
   declared: $(jq -r '.profiles | keys | join(", ")' "$CFG")
   Add it to $CFG deliberately; do not pick a harness to suit the lane."
-  hk_known "$KIND" || die "profile '$p' declares kind '$KIND', which lirbox does not know.
+  hk_known "$KIND" || die "profile '$p' declares kind '$KIND', which agentbox does not know.
   known: $(hk_kinds)
   Add it to plugins/agentbox/scripts/harness-kinds.sh — one table, not a branch."
   # herdr is what actually starts the harness, and its enum is the real limit.
@@ -50,7 +50,7 @@ resolve_profile() {
   # rather than a harness herdr has not added yet. Say which it is.
   hk_herdr_supports "$KIND" || die "herdr cannot start a '$KIND' agent on this machine.
   herdr supports: $(hk_herdr_kinds | tr '\n' ' ')
-  lirbox knows the flags for '$KIND' and will use them the moment herdr does —
+  agentbox knows the flags for '$KIND' and will use them the moment herdr does —
   nothing here needs changing. Until then, declare the lane on another harness."
   MODEL=$(jq -r --arg p "$p" '.profiles[$p].model // empty' "$CFG")
   FLAGS=$(jq -r --arg p "$p" '.profiles[$p].flags // [] | join(" ")' "$CFG")
@@ -771,7 +771,7 @@ conductor)
   branch. Declare a claude profile for this lane."
 
   # The kind is necessary and not sufficient: the profile's AGENT decides what
-  # the lane can actually call. lirbox's own lane agents do not carry Skill —
+  # the lane can actually call. agentbox's own lane agents do not carry Skill —
   # `agentbox-builder` is Read/Edit/Write/Bash/Grep/Glob/TodoWrite, and it is what
   # `init` writes as default_profile. Started on one of those, the lane reads a
   # brief telling it to invoke agentbox:conductor, cannot, and implements the goal

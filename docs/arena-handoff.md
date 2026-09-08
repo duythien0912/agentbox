@@ -174,7 +174,7 @@ docs/arena-guide.md             # full how-to        docs/eval-rungs-2-5-guide.m
 - **uglify-corner-cases P2P is load-sensitive, not flaky** (proven 3/3 green idle after one red
   under load): its mocha half has 10s timeouts and heavy process-spawning, so NEVER overlap two
   full-suite runs (a cell's grade + `test-arena` validate, or two uglify cells). Grade serially.
-- PRs on this repo: `gh auth switch --user liemle3893` → create → switch back to `thiennd_msn`.
+- PRs on this repo: `gh auth switch --user duythien0912` → create → switch back to `thiennd_msn`.
 
 ## History
 

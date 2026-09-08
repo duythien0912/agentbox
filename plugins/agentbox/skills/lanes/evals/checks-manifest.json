@@ -920,7 +920,7 @@
           "env": "PLUGIN_MANIFEST_OVERRIDE",
           "root": "repo",
           "file": "plugins/agentbox/.claude-plugin/plugin.json",
-          "find": "\"name\": \"lirbox\",",
+          "find": "\"name\": \"agentbox\",",
           "replace": "\"name\": \"agentbox-next\","
         },
         {

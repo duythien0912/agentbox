@@ -47,7 +47,7 @@
 - **Hold everything except the skill constant.** Same `--ak disallowed_tools=…` on every arm including big-window models; same `-k`; same task. Varying two things at once makes the lift uninterpretable.
 - **Do not touch `plugins/agentbox/skills/flowchart/harbor/`** mid-ladder. Changing the task or its harness breaks comparability with arms already run.
 - Never commit runtime artifacts (`jobs/`, `.workflows/`, `.worktrees/`, `.improve/`). the former Harbor staging tree is tracked but derived — never hand-edit; the `Harbor tasks in sync` CI step rebuilds and fails on drift.
-- Commit identity enforced by `.githooks/pre-commit` (author `liemle3893 <33980597+liemle3893@users.noreply.github.com>`). `main` is pull-request-only.
+- Commit identity enforced by `.githooks/pre-commit` (author `duythien0912 <33980597+duythien0912@users.noreply.github.com>`). `main` is pull-request-only.
 - Credentials live in gitignored `.env` (`CLAUDE_CODE_OAUTH_TOKEN`). Source it; never echo it, never let it reach a log or a commit.
 - **`total_cost_usd` is fictional on the Ollama endpoint** — a LiteLLM estimate. The e2b run reported `$33.35` for a local model. This Harbor version emits no `cost_source` tag, so the filter CONTRIBUTING prescribes will not catch it automatically. Never let it reach a scorecard.
 

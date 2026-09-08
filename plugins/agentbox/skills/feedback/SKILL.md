@@ -1,29 +1,29 @@
 ---
 name: feedback
-description: "User-invoked only: file scrubbed, whetstone-ready feedback about a lirbox skill as a GitHub issue on liemle3893/lirbox. Triggers ONLY when user explicitly runs /feedback or agentbox:feedback. Never auto-invoked."
+description: "User-invoked only: file scrubbed, whetstone-ready feedback about an agentbox skill as a GitHub issue duythien0912n0912/agentbox. Triggers ONLY when user explicitly runs /feedback or agentbox:feedback. Never auto-invoked."
 disable-model-invocation: true
 argument-hint: "[ <skill> | <free-text concern> ]"
 ---
 
-# Feedback — file a scrubbed, whetstone-ready issue about a lirbox skill
+# Feedback — file a scrubbed, whetstone-ready issue about an agentbox skill
 
-Turn a user's experience with a lirbox skill into a redacted GitHub issue on `liemle3893/lirbox`,
+Turn a user's experience with an agentbox skill into a redacted GitHub issue oduythien0912n0912/agentbox`,
 shaped as a whetstone backlog record so it can later seed a `agentbox:whetstone` improvement run.
 
 ## When to use
 
 - ONLY when the user explicitly invokes `/feedback` or `agentbox:feedback`. This skill is
   `disable-model-invocation: true` — never trigger it on your own initiative.
-- For feedback about a lirbox **skill/tool itself** — e.g. "conductor skipped Verify", "flowchart
+- For feedback about an agentbox **skill/tool itself** — e.g. "conductor skipped Verify", "flowchart
   didn't escape `<` in a label", "whetstone was too lax". NOT for the user's own project work, and
   NOT a general bug tracker for their code.
 
 ## Inputs
 
-- `$ARGUMENTS` (optional): a lirbox skill name and/or free text describing the concern.
+- `$ARGUMENTS` (optional): an agentbox skill name and/or free text describing the concern.
 - If no skill is named: infer the target from the most-recently-modified run-state file under
   `.workflows/state/*.json` (conductor) or `.improve/state/*.json` (whetstone) in the cwd. If none
-  exists, ask the user which lirbox skill the feedback is about.
+  exists, ask the user which agentbox skill the feedback is about.
 
 ## Workflow
 
@@ -71,7 +71,7 @@ explicitly approve. If they want edits, apply them and re-scrub.
 Check `gh auth status`. If authed:
 
 ```bash
-gh issue create --repo liemle3893/lirbox \
+gh issue create --repo duythien091212/agentbox \
   --title "[feedback][<skill>] <short summary>" \
   --body-file /path/to/scrubbed.md \
   --label feedback --label "skill:<skill>"
@@ -84,7 +84,7 @@ same command **without** the two `--label` flags.
 user can click. Build it with:
 
 ```bash
-node -e 'const fs=require("fs");const t=encodeURIComponent(process.argv[1]);const b=encodeURIComponent(fs.readFileSync(process.argv[2],"utf8"));console.log("https://github.com/liemle3893/lirbox/issues/new?title="+t+"&body="+b)' "[feedback][<skill>] <short summary>" /path/to/scrubbed.md
+node -e 'const fs=require("fs");const t=encodeURIComponent(process.argv[1]);const b=encodeURIComponent(fs.readFileSync(process.argv[2],"utf8"));console.log("https://github.com/duythien091212/agentbox/issues/new?title="+t+"&body="+b)' "[feedback][<skill>] <short summary>" /path/to/scrubbed.md
 ```
 
 ### 8. Report

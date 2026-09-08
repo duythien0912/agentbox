@@ -10,7 +10,7 @@ description: This skill should be used to draw a TIME-ORDERED INTERACTION betwee
 Turn a time-ordered interaction into one self-contained interactive HTML page: a Mermaid
 `sequenceDiagram` (autonumbered) beside a **numbered step list** that drives a detail panel.
 Mermaid can't bind clicks to individual messages, so the numbered list — not the SVG — is the
-interactive surface. Warm editorial design shared with the other lirbox HTML skills.
+interactive surface. Warm editorial design shared with the other agentbox HTML skills.
 
 **Offline caveat:** the page fetches Mermaid from a CDN (pinned + SRI). It needs internet to
 render — mention this when delivering.

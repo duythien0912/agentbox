@@ -74,9 +74,9 @@ HK_EFFORT_VALUES=(
 hk_kinds() { print -r -- "${(ko)HK_AGENT_ARG}" }
 hk_known() { [[ -n "${HK_AGENT_ARG[$1]-}" ]] }
 
-# Whether herdr can START this kind, as opposed to whether lirbox knows its
+# Whether herdr can START this kind, as opposed to whether agentbox knows its
 # flags. The two are different questions and jcode is the case that separates
-# them: lirbox knows jcode's flags, and `herdr agent start --kind jcode` answers
+# them: agentbox knows jcode's flags, and `herdr agent start --kind jcode` answers
 # "unsupported interactive agent kind".
 #
 # This is a static field rather than a probe of herdr because the ONLY place
@@ -165,7 +165,7 @@ hk_agent_names() {
     claude)
       command -v claude >/dev/null 2>&1 || return 1
       local out
-      out=$(cd "$root" 2>/dev/null && claude --agent __lirbox_agent_probe__ -p '' </dev/null 2>&1)
+      out=$(cd "$root" 2>/dev/null && claude --agent __agentbox_agent_probe__ -p '' </dev/null 2>&1)
       [[ "$out" == *'Available agents:'* ]] || return 1
       # Take the list and NOTHING after it: the refusal can be preceded by
       # warnings (an ANTHROPIC_API_KEY notice, for one) and could one day be

@@ -7,7 +7,7 @@ your machine is off.
 ## How it runs
 
 Create the routine in the **Claude web app** (claude.ai/code → routines/schedule) against an environment
-that has the `liemle3893/lirbox` repo connected. Scheduled sessions created that way are authenticated as
+that has the `duythien0912/agentbox` repo connected. Scheduled sessions created that way are authenticated as
 you — the repo is auto-cloned and `git push` / PR creation work headlessly (verified: a scheduled session
 cloned, committed, pushed, and opened a PR end-to-end). Paste the routine prompt below as the routine's
 instruction.
@@ -27,12 +27,12 @@ instruction.
 
 ## One-time prerequisites
 
-- The routine's environment has `liemle3893/lirbox` connected (so scheduled sessions clone it with auth).
+- The routine's environment has `duythien0912/agentbox` connected (so scheduled sessions clone it with auth).
 - Labels `in-progress` and `needs-human` exist on the repo (the routine's lock + failure markers).
 
 ## Safety model (read before enabling)
 
-- Acts **only on issues authored by `liemle3893`** — ignores strangers' issues on the public repo.
+- Acts **only on issues authored by `duythien0912`** — ignores strangers' issues on the public repo.
 - **Only eval-gated changes auto-push to `main`.** Feedback issues run through whetstone, which keeps a
   commit only when its floor + frozen check + surface-lock all pass — so every auto-merge is eval-gated. A
   non-feedback change not covered by a green eval floor gets a **PR + `needs-human`**, never an auto-push.
@@ -44,7 +44,7 @@ instruction.
 ## Routine prompt
 
 ```
-You are an autonomous maintenance routine for the lirbox repo (liemle3893/lirbox). Each fire
+You are an autonomous maintenance routine for the agentbox repo (duythien0912/agentbox). Each fire
 processes AT MOST ONE issue, end to end, atomically, then STOPS. No human is watching — be
 conservative: never push partial or ungated work, never force-push, never auto-resolve a conflict.
 
@@ -54,20 +54,20 @@ and PR operations use the `github` MCP tools if present (load via ToolSearch, e.
 STOP and report — do not proceed.
 
 STEP 0 — Locate repo, set identity
-- Locate the lirbox working copy (it is cloned into this session; it may be the cwd). cd into it.
+- Locate the agentbox working copy (it is cloned into this session; it may be the cwd). cd into it.
   If absent and you cannot clone it, STOP.
 - `git fetch origin && git checkout main && git reset --hard origin/main`.
 - Set the commit identity (.githooks/pre-commit requires it; also keeps authorship clean):
-    git config user.name  "liemle3893"
-    git config user.email "33980597+liemle3893@users.noreply.github.com"
+    git config user.name  "duythien0912"
+    git config user.email "33980597+duythien0912@users.noreply.github.com"
     git config commit.gpgsign false
 
 STEP 1 — Pick one issue (FIFO triage; ONLY issues you authored)
-- List OPEN issues authored by `liemle3893` (gh: `gh issue list --author liemle3893 --state open
-  --json number,title,labels,createdAt,author`, or the github MCP equivalent filtered to author==liemle3893).
+- List OPEN issues authored by `duythien0912` (gh: `gh issue list --author duythien0912 --state open
+  --json number,title,labels,createdAt,author`, or the github MCP equivalent filtered to author==duythien0912).
 - Drop any labeled `in-progress`, `blocked`, or `needs-human`.
 - Sort by oldest createdAt; pick the first. If none, STOP.
-- VERIFY the picked issue's author login == "liemle3893"; if not, STOP.
+- VERIFY the picked issue's author login == "duythien0912"; if not, STOP.
 - Label it `in-progress` (the lock). If labeling fails, STOP.
 
 STEP 2 — Classify
@@ -96,7 +96,7 @@ STEP 3b — NON-feedback issue → branch, do NOT auto-push
 STEP 4 — Squash → main → push (gated changes only)
 - `git checkout main && git reset --hard origin/main`
 - `git merge --squash <WORKBRANCH>`
-- `git commit -m "<type>(lirbox): <summary> (auto, closes #<N>)"` (identity from STEP 0). If a commit hook
+- `git commit -m "<type>(agentbox): <summary> (auto, closes #<N>)"` (identity from STEP 0). If a commit hook
   blocks it: `git reset --hard origin/main`; remove in-progress; add needs-human; comment; STOP.
 - FINAL GATE on main HEAD: re-run `claude plugin validate .` and the relevant evals/run.mjs. If red:
   `git reset --hard origin/main`; abort as above; STOP.

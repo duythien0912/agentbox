@@ -1,12 +1,12 @@
 # Scored tasks — building graded eval suites for whetstone feedback harvest
 
-Reference for authoring and running a **scored task set** for a lirbox skill. Scored tasks evaluate
+Reference for authoring and running a **scored task set** for a agentbox skill. Scored tasks evaluate
 a skill's output surface across deterministic test cases and feed failing items into whetstone's
 backlog via `harvest-feedback.cjs`.
 
 For aggregate prompt/skill text hill-climbing on scored task sets, use dedicated reflective prompt
 evolution frameworks such as **[GEPA](https://github.com/gepa-ai/gepa)** (`optimize_anything`) or
-**OpenEvolve**, which natively support Pareto optimization and textual reflection. Within lirbox,
+**OpenEvolve**, which natively support Pareto optimization and textual reflection. Within agentbox,
 use **whetstone** to grind individual failing tasks through deterministic checks and regression floors.
 
 ---

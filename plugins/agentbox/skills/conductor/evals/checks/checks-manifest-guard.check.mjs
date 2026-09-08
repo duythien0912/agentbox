@@ -104,9 +104,9 @@ if (!existsSync(MANIFEST)) {
   // 6. the floor as a whole still passes with the guard wired in — the integration assertion, and
   //    transitively the proof that every `green` entry really is green right now.
   //    The floor test runs EVERY check, this one included, so invoking the floor from here would
-  //    recurse. LIRBOX_FLOOR_NESTED (set by the floor test when it spawns a check) marks that case;
+  //    recurse. agentbox_FLOOR_NESTED (set by the floor test when it spawns a check) marks that case;
   //    the outer, standalone invocation is the one that actually asserts it.
-  if (process.env.LIRBOX_FLOOR_NESTED === '1') {
+  if (process.env.agentbox_FLOOR_NESTED === '1') {
     ok(true, '6. the floor runner passes with the guard in place [skipped — nested inside the floor]');
   } else {
     let floorExit = 0;

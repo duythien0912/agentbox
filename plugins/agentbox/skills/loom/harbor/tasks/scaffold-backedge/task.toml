@@ -12,7 +12,7 @@
 # requires the security gate to route back to PLAN instead, which a seed copy cannot satisfy.
 
 [task]
-name = "lirbox/loom__scaffold-backedge"
+name = "agentbox/loom__scaffold-backedge"
 version = "1.0.0"
 description = "loom must author a graph whose gate failures route BACK to the right earlier stage, with gates un-bypassable"
 

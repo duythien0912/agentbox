@@ -11,7 +11,7 @@
  *                    [--runs 1] [--cap 900] [--keep <dir>] [--task <id>]
  *   --task limits the run to ONE graded task (single-cell scorecard — used for era top-ups and
  *     rung experiments; the row still records the full-suite fingerprint, so cells stay reusable).
- *   --plugin-dir benchmarks a specific conductor VERSION (a lirbox checkout); omit for the installed one.
+ *   --plugin-dir benchmarks a specific conductor VERSION (a agentbox checkout); omit for the installed one.
  *   --keep saves per-cell diffs/traces/grades there (else a temp dir, removed on success).
  *
  * Cells run SEQUENTIALLY (one conductor fleet at a time — predictable resource use); each is bounded by

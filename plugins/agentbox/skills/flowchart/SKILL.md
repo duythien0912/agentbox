@@ -8,11 +8,11 @@ description: This skill should be used to turn a branching process or workflow i
 Turn a branching process into one interactive HTML page: a Mermaid flowchart (decision
 diamonds, labelled branches, fail paths, loops) plus a clickable per-node detail panel with
 each step's narrative and code. Warm editorial design (ivory/clay/olive) shared with the
-other lirbox skills (`pr-writeup`, `plan-deck`, `codewalk`); Mermaid does the layout so
+other agentbox skills (`pr-writeup`, `plan-deck`, `codewalk`); Mermaid does the layout so
 nodes never overlap.
 
 **Offline caveat:** the page loads Mermaid from a CDN (pinned + SRI-hashed), so it needs
-internet to render — the only lirbox skill not fully offline. Mention this when delivering.
+internet to render — the only agentbox skill not fully offline. Mention this when delivering.
 
 Use for processes that **branch** — CI/deploy pipelines, approval/onboarding funnels, state
 machines, retry/fallback logic, decision trees. For a linear flow use `plan-deck`

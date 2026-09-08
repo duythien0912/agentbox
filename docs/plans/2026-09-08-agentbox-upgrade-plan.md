@@ -1,7 +1,7 @@
-# Lirbox Comprehensive Upgrade & Implementation Plan
+# agentbox Comprehensive Upgrade & Implementation Plan
 
 ## 1. Executive Summary & Audit Findings
-A full-repo audit of `lirbox` (18 skills, 10 agents, dual-layer marketplace) confirmed that while the fast floor regression gate and 6 generator nets pass, critical gaps undermine long-term reliability and discoverability:
+A full-repo audit of `agentbox` (18 skills, 10 agents, dual-layer marketplace) confirmed that while the fast floor regression gate and 6 generator nets pass, critical gaps undermine long-term reliability and discoverability:
 1. **Eval Gaps**: 4 shipped skills (`codewalk`, `pr-writeup`, `c4-model`, `deep-understanding`) lack Tier 2 evals entirely, leaving them ungated and unimprovable by `whetstone`. 4 other skills (`plan-deck`, `feedback`, `skill-lint`, `whetstone`) lack `checks-manifest.json`.
 2. **Prompt Bloat & Lint Violations**: `skill-lint` reports 15 findings, dominated by oversized skills without progressive disclosure: `lanes` (2,443 words), `whetstone` (2,088 words), and `loom` (1,708 words), significantly exceeding the 1,200-word budget.
 3. **Feedback Staleness & Conductor Defects**: `feedback/conductor.jsonl` contains 8 operational defects (including resume state detachment and DoD escalated status clobbering), while other feedback files retain stale items already merged.
@@ -51,7 +51,7 @@ Per implementation decision, the plan is structured into **4 Independent Paralle
 - **Problem**: When a run resumes via `args = { phasesDone, results }`, `scaffold-workflow.cjs` (lines 1072–1094) only validates that `phasesDone` is a contiguous prefix of `phaseOrder`. If flags or phase definitions change between runs, stale results apply to a divergent script DAG.
 - **Architectural Invariant**: The Conductor Layer must remain 100% pure JS (strictly no `fs`, `git`, `require`, `Date.now()`, `Math.random()`, `crypto`). All cryptographic operations occur exclusively in the Node.js generator script (`scaffold-workflow.cjs`) at scaffold time.
 - **Implementation Steps**:
-  1. In `plugins/lirbox/skills/conductor/scripts/scaffold-workflow.cjs` (around line 990):
+  1. In `plugins/agentbox/skills/conductor/scripts/scaffold-workflow.cjs` (around line 990):
      Compute SHA-256 hash across the workflow configuration payload:
      ```javascript
      const crypto = require('crypto');
@@ -98,14 +98,14 @@ Per implementation decision, the plan is structured into **4 Independent Paralle
 #### 1.2 Escalated Status Preservation (`escalated-status-preserved`)
 - **Problem**: When `DoDGate` reaches `status: 'escalated'` and throws for human adjudication, the finalize script in `references/run-planning.md` unconditionally stamps `s.status = 'failed'`, destroying the escalation marker.
 - **Implementation Steps**:
-  1. In `plugins/lirbox/skills/conductor/SKILL.md` (Step 1, lines 41–44):
+  1. In `plugins/agentbox/skills/conductor/SKILL.md` (Step 1, lines 41–44):
      Update resume table:
      ```markdown
      | a state file, `escalated` | review unmet criteria / failure reason; prompt user for decision via `AskUserQuestion`, then **resume** → step 4 (do NOT regenerate) |
      | a state file, `running`/`failed` | **resume** → step 4 (do NOT regenerate with `--force`: script fingerprint must match state) |
      | a state file, `complete` | say so (offer `workflow-report.cjs <name>`); fresh run only if they meant one |
      ```
-  2. In `plugins/lirbox/skills/conductor/SKILL.md` (Step 5, lines 168–174):
+  2. In `plugins/agentbox/skills/conductor/SKILL.md` (Step 5, lines 168–174):
      Update finalize logic:
      ```markdown
      When the Workflow returns, stamp `status` + `finishedAt` (the conductor cannot) — if it threw,
@@ -113,14 +113,14 @@ Per implementation decision, the plan is structured into **4 Independent Paralle
      postmortem); stamp `failed` only if the persisted status is still `running`. Stamp `complete` on
      clean success, or `partial` when `results.coverage` holds notes.
      ```
-  3. In `plugins/lirbox/skills/conductor/references/run-planning.md` (line 165):
+  3. In `plugins/agentbox/skills/conductor/references/run-planning.md` (line 165):
      Update error handling bash command:
      ```bash
      node -e "const f='.workflows/state/<name>.json';const s=JSON.parse(require('fs').readFileSync(f,'utf8'));if(s.status==='running')s.status='failed';s.finishedAt=new Date().toISOString();require('fs').writeFileSync(f,JSON.stringify(s,null,2))"
      ```
 
 #### 1.3 Conductor Net String Scan Fix (`purity-scan-quotes`)
-- **Problem**: In `plugins/lirbox/skills/conductor/scripts/test-scaffold.cjs`, `conductorBody` only strips backticks (`` `...` ``), causing shell commands inside single/double quoted strings (e.g., DoD checks using `node -e "require('fs')..."`) to trigger false positives on `require(` or `fs.`.
+- **Problem**: In `plugins/agentbox/skills/conductor/scripts/test-scaffold.cjs`, `conductorBody` only strips backticks (`` `...` ``), causing shell commands inside single/double quoted strings (e.g., DoD checks using `node -e "require('fs')..."`) to trigger false positives on `require(` or `fs.`.
 - **Implementation**:
   Update `conductorBody` in `test-scaffold.cjs`:
   ```javascript
@@ -132,16 +132,16 @@ Per implementation decision, the plan is structured into **4 Independent Paralle
       .replace(/'(?:[^'\\]|\\.)*'/g, '""');
   }
   ```
-  Refresh golden snapshots via `node plugins/lirbox/skills/conductor/scripts/test-scaffold.cjs --update-snapshots`.
+  Refresh golden snapshots via `node plugins/agentbox/skills/conductor/scripts/test-scaffold.cjs --update-snapshots`.
 
 #### 1.4 Frozen Acceptance Checks & Mutation Proofs
-Create 2 checks registered in `plugins/lirbox/skills/conductor/evals/checks-manifest.json`:
-1. `plugins/lirbox/skills/conductor/evals/checks/resume-script-fingerprint.check.mjs`:
+Create 2 checks registered in `plugins/agentbox/skills/conductor/evals/checks-manifest.json`:
+1. `plugins/agentbox/skills/conductor/evals/checks/resume-script-fingerprint.check.mjs`:
    - Generates two workflows with different flags (`--phases Work` vs `--phases Analyze,Implement`).
    - Asserts distinct fingerprints.
    - Tests that resuming with mismatched fingerprint throws mismatch error.
    - Mutations: replaces `args.scriptFingerprint !== SCRIPT_FINGERPRINT` with `false`, and removes `scriptFingerprint` from state payload.
-2. `plugins/lirbox/skills/conductor/evals/checks/escalated-status-preserved.check.mjs`:
+2. `plugins/agentbox/skills/conductor/evals/checks/escalated-status-preserved.check.mjs`:
    - Validates `SKILL.md` Step 1 and Step 5 text anchors.
    - Validates `references/run-planning.md:165` contains conditional `if(s.status==='running')s.status='failed'`.
    - Mutations: replaces conditional with unconditional `s.status='failed'`, and removes escalated row from `SKILL.md`.
@@ -159,7 +159,7 @@ Create 2 checks registered in `plugins/lirbox/skills/conductor/evals/checks-mani
 *Target skills: `codewalk`, `pr-writeup`, `c4-model`, `deep-understanding`, `plan-deck`, `feedback`, `skill-lint`, `whetstone`*
 
 #### 2.1 `codewalk` Validator, Fixtures & Floor
-- **Headless Validator**: `plugins/lirbox/skills/codewalk/assets/validate.mjs`
+- **Headless Validator**: `plugins/agentbox/skills/codewalk/assets/validate.mjs`
   - Invariants:
     1. Zero leftover `{{...}}` tokens (`/\{\{[^}]+\}\}/g === null`).
     2. Exactly one `<h1 class="title">` (or `<h1 class="flow-title">`).
@@ -168,7 +168,7 @@ Create 2 checks registered in `plugins/lirbox/skills/conductor/evals/checks-mani
     5. Critical highlight quota: `<= 1` critical step (`.step.critical`) and `<= 1` critical node (`.node.critical`).
     6. File:Line anchors: Every `.step` contains `<p class="loc">` matching `/[^\s:]+:\d+(?:[-–]\d+)?/`.
     7. Code excerpt: Every `.step` contains `<details class="snip">` with `<summary>` and `<pre>`.
-- **Fixtures** (`plugins/lirbox/skills/codewalk/evals/fixtures/`):
+- **Fixtures** (`plugins/agentbox/skills/codewalk/evals/fixtures/`):
   - `clean.html` (exit 0)
   - `placeholder-left.html` (exit 1)
   - `two-titles.html` (exit 1)
@@ -177,12 +177,12 @@ Create 2 checks registered in `plugins/lirbox/skills/conductor/evals/checks-mani
   - `two-critical-steps.html` (exit 1)
   - `missing-loc.html` (exit 1)
 - **Floor Runner & Manifest**:
-  - `plugins/lirbox/skills/codewalk/evals/run.mjs`
-  - `plugins/lirbox/skills/codewalk/evals/floor/structure.test.mjs`
-  - `plugins/lirbox/skills/codewalk/evals/checks-manifest.json` (`{"checks": {}}`).
+  - `plugins/agentbox/skills/codewalk/evals/run.mjs`
+  - `plugins/agentbox/skills/codewalk/evals/floor/structure.test.mjs`
+  - `plugins/agentbox/skills/codewalk/evals/checks-manifest.json` (`{"checks": {}}`).
 
 #### 2.2 `pr-writeup` Validator, Fixtures & Floor
-- **Headless Validator**: `plugins/lirbox/skills/pr-writeup/assets/validate.mjs`
+- **Headless Validator**: `plugins/agentbox/skills/pr-writeup/assets/validate.mjs`
   - Invariants:
     1. Zero leftover `{{...}}` placeholders.
     2. Exactly one `<h1 class="title">`.
@@ -191,7 +191,7 @@ Create 2 checks registered in `plugins/lirbox/skills/conductor/evals/checks-mani
     5. File cards (`section#files .file`): `>= 1` card, each with `<span class="path">`, `<p class="role">`, and badge (`new`, `mod`, `del`).
     6. Focus items: Sequence `1..N` with `<p class="ref">`.
     7. Test checklist: Contains `<ul class="checks">` with `>= 1` checklist item (`<li class="(done|todo|na)">`).
-- **Fixtures** (`plugins/lirbox/skills/pr-writeup/evals/fixtures/`):
+- **Fixtures** (`plugins/agentbox/skills/pr-writeup/evals/fixtures/`):
   - `clean.html` (exit 0)
   - `placeholder-left.html` (exit 1)
   - `duplicate-title.html` (exit 1)
@@ -200,17 +200,17 @@ Create 2 checks registered in `plugins/lirbox/skills/conductor/evals/checks-mani
   - `focus-badge-gap.html` (exit 1)
   - `empty-tests.html` (exit 1)
 - **Floor Runner & Manifest**:
-  - `plugins/lirbox/skills/pr-writeup/evals/run.mjs`
-  - `plugins/lirbox/skills/pr-writeup/evals/floor/structure.test.mjs`
-  - `plugins/lirbox/skills/pr-writeup/evals/checks-manifest.json` (`{"checks": {}}`).
+  - `plugins/agentbox/skills/pr-writeup/evals/run.mjs`
+  - `plugins/agentbox/skills/pr-writeup/evals/floor/structure.test.mjs`
+  - `plugins/agentbox/skills/pr-writeup/evals/checks-manifest.json` (`{"checks": {}}`).
 
 #### 2.3 `c4-model` & `deep-understanding` Static Floors
-- **`c4-model`** (`plugins/lirbox/skills/c4-model/evals/`):
+- **`c4-model`** (`plugins/agentbox/skills/c4-model/evals/`):
   - `run.mjs`
   - `floor/00-structure.test.mjs`: Asserts frontmatter triggers (`C4 diagram`, `likec4`), pinned Docker image `IMAGE="ghcr.io/likec4/likec4:1.58.0"` in `scripts/likec4.sh`, and `references/dsl.md` presence.
   - `floor/01-dsl-contract.test.mjs`: Tests static LikeC4 syntax invariants (ordering `specification` -> `model` -> `views`, mandatory `view index`, valid element/relation syntax).
   - `checks-manifest.json` (`{"checks": {}}`).
-- **`deep-understanding`** (`plugins/lirbox/skills/deep-understanding/evals/`):
+- **`deep-understanding`** (`plugins/agentbox/skills/deep-understanding/evals/`):
   - `run.mjs`
   - `floor/00-structure.test.mjs`: Asserts frontmatter triggers (`teach me`, `quiz me`), 6 required workflow phases, and anti-patterns documentation.
   - `floor/01-assets-contract.test.mjs`: Asserts 3-stage checklist structure in `assets/understanding-checklist.md` and quiz/mastery rules in `references/teaching-playbook.md`.
@@ -218,10 +218,10 @@ Create 2 checks registered in `plugins/lirbox/skills/conductor/evals/checks-mani
 
 #### 2.4 Manifest Registration for Floor-Only Skills
 Add `evals/checks-manifest.json` (`{"checks": {}}`) to:
-- `plugins/lirbox/skills/plan-deck/evals/checks-manifest.json`
-- `plugins/lirbox/skills/feedback/evals/checks-manifest.json`
-- `plugins/lirbox/skills/skill-lint/evals/checks-manifest.json`
-- `plugins/lirbox/skills/whetstone/evals/checks-manifest.json`
+- `plugins/agentbox/skills/plan-deck/evals/checks-manifest.json`
+- `plugins/agentbox/skills/feedback/evals/checks-manifest.json`
+- `plugins/agentbox/skills/skill-lint/evals/checks-manifest.json`
+- `plugins/agentbox/skills/whetstone/evals/checks-manifest.json`
 
 ---
 
@@ -229,20 +229,20 @@ Add `evals/checks-manifest.json` (`{"checks": {}}`) to:
 *Target skills: `lanes`, `loom`, `plan-check`, `feedback`*
 
 #### 3.1 `lanes` Refactor (2,443 words -> < 1,200 words)
-- Create `plugins/lirbox/skills/lanes/references/`:
+- Create `plugins/agentbox/skills/lanes/references/`:
   - `recovery.md`: Extract Section 6 (process inspection `T`/`R`/`S`, `ps`/`lsof` recipes, signal suspension mechanics, dead-lane recovery matrices). Replace in `SKILL.md` with a concise state transition table and reference link.
   - `dod-and-gates.md`: Extract Sections 7 & 8 (`orch-lane.sh gate`, `gate-guard.sh`, `dod-freeze.mjs`). Replace in `SKILL.md` with a 4-line invocation summary and reference link.
 
 #### 3.2 `loom` Refactor (1,708 words -> < 1,200 words)
-- Create `plugins/lirbox/skills/loom/references/pre-flight.md`:
+- Create `plugins/agentbox/skills/loom/references/pre-flight.md`:
   - Extract Section 3 (DoD freezing details, browser-based editor instructions).
   - Replace in `loom/SKILL.md` with a 3-bullet execution summary linking to `pre-flight.md`.
 
 #### 3.3 `plan-check` & `feedback` Remediation
 - **`plan-check`**: Refactor prose blocks in lines 52–115 into Markdown decision tables.
-- **`feedback`**: Update frontmatter description in `plugins/lirbox/skills/feedback/SKILL.md`:
+- **`feedback`**: Update frontmatter description in `plugins/agentbox/skills/feedback/SKILL.md`:
   ```yaml
-  description: "User-invoked only: file scrubbed, whetstone-ready feedback about a lirbox skill as a GitHub issue on liemle3893/lirbox. Triggers ONLY when user explicitly runs /feedback or lirbox:feedback. Never auto-invoked."
+  description: "User-invoked only: file scrubbed, whetstone-ready feedback about a agentbox skill as a GitHub issue on duythien0912/agentbox. Triggers ONLY when user explicitly runs /feedback or agentbox:feedback. Never auto-invoked."
   ```
 
 ---
@@ -251,19 +251,19 @@ Add `evals/checks-manifest.json` (`{"checks": {}}`) to:
 *Target skills: `prospector`, manifests, docs*
 
 #### 4.1 Scope `prospector` to Objective Code Scalars
-- Delete deprecated generator: `plugins/lirbox/skills/prospector/scripts/scaffold-skilltrain-config.cjs`.
-- Move `plugins/lirbox/skills/prospector/references/skill-train.md` to `plugins/lirbox/skills/whetstone/references/scored-tasks.md`.
+- Delete deprecated generator: `plugins/agentbox/skills/prospector/scripts/scaffold-skilltrain-config.cjs`.
+- Move `plugins/agentbox/skills/prospector/references/skill-train.md` to `plugins/agentbox/skills/whetstone/references/scored-tasks.md`.
 - Update `prospector/SKILL.md`: Remove `skill <name>` routing branch from arguments auto-detection; update description to focus on code scalars (perf, latency, memory, binary size).
-- Update generator test net: `plugins/lirbox/skills/prospector/scripts/test-optimize.cjs`.
+- Update generator test net: `plugins/agentbox/skills/prospector/scripts/test-optimize.cjs`.
 
 #### 4.2 Manifest & Documentation Synchronization
-- Update `.claude-plugin/marketplace.json` and `plugins/lirbox/.claude-plugin/plugin.json`:
+- Update `.claude-plugin/marketplace.json` and `plugins/agentbox/.claude-plugin/plugin.json`:
   ```json
-  "description": "lirbox — comprehensive developer toolkit featuring 18 skills and 10 agents for architectural diagramming (C4, sequence, flowchart), automated code walkthroughs, durable orchestration (conductor, loom, lanes), and eval-gated optimization (prospector, whetstone, arena)."
+  "description": "agentbox — comprehensive developer toolkit featuring 18 skills and 10 agents for architectural diagramming (C4, sequence, flowchart), automated code walkthroughs, durable orchestration (conductor, loom, lanes), and eval-gated optimization (prospector, whetstone, arena)."
   ```
 - Update `README.md`:
   - Add `plan-check` and `feedback` to Skills table.
-  - Add `lirbox-planner`, `lirbox-verifier`, `lirbox-builder` to Agents table.
+  - Add `agentbox-planner`, `agentbox-verifier`, `agentbox-builder` to Agents table.
 
 ---
 
@@ -274,7 +274,7 @@ Add `evals/checks-manifest.json` (`{"checks": {}}`) to:
 | **1** | **Regression Gate** | `node scripts/evals-all.mjs --fast` | `ran 18 floor(s), >= 101 check(s)` with 0 failures. |
 | **2** | **Generator Nets** | `node scripts/evals-all.mjs` | All 6 generator test nets (`conductor`, `prospector`, `whetstone`, `loom`, `arena`, `skill-lint`) exit 0. |
 | **3** | **Check Mutations** | `node scripts/prove-checks.mjs --skill conductor` | Conductor checks report `DISCRIMINATING` (RED on mutation). |
-| **4** | **Skill Lint Audit** | `node plugins/lirbox/skills/skill-lint/scripts/analyze.cjs` | All 18 skills <= 1,200 words; 0 fatal warnings. |
+| **4** | **Skill Lint Audit** | `node plugins/agentbox/skills/skill-lint/scripts/analyze.cjs` | All 18 skills <= 1,200 words; 0 fatal warnings. |
 | **5** | **Plugin Validation** | `claude plugin validate .` | Exits 0, valid marketplace & plugin schema. |
 
 ---

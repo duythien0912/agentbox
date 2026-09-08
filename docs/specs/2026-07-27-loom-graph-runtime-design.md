@@ -1,4 +1,4 @@
-# loom — a graph runtime for lirbox orchestration skills
+# loom — a graph runtime for agentbox orchestration skills
 
 **Date:** 2026-07-27
 **Status:** design approved, not yet planned
@@ -329,6 +329,6 @@ Run-level success criteria:
 Spec → implementation plan → dogfood the build through `conductor` itself with a real DoD.
 Conductor building its own successor is a genuine test of the current one.
 
-Note: the standing rule that lirbox skill changes go through `whetstone` does not apply here.
+Note: the standing rule that agentbox skill changes go through `whetstone` does not apply here.
 Whetstone requires one deterministic RED→GREEN check per filed concern against an existing
 skill; this is a new runtime, not a filed concern.

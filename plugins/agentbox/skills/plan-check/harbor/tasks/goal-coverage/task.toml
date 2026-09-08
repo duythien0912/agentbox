@@ -1,5 +1,5 @@
 [task]
-name = "lirbox/plan-check__goal-coverage"
+name = "agentbox/plan-check__goal-coverage"
 version = "1.0.0"
 description = "plan-check skill task: a plan whose DoD is fully checkable yet does not achieve its stated goal — the report must name the mismatch"
 

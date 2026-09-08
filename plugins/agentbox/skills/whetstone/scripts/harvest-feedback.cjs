@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * Harvest whetstone backlog items from FAILING skill-train TRAIN tasks — SkillOpt's
- * trajectory-driven reflection, adapted to lirbox's gates: run every
+ * trajectory-driven reflection, adapted to agentbox's gates: run every
  * <skill>/evals/tasks/train/*.test.mjs; each FAILURE becomes a feedback/<skill>.jsonl item whose
  * acceptanceCheck IS that task. A harvested item is therefore RED-on-baseline BY CONSTRUCTION
  * (it was just observed failing), so it sails through whetstone's discrimination gate, and its

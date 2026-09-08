@@ -113,7 +113,7 @@ test: {
 
 ## Offline / CDN note
 
-This is the one lirbox skill that needs **internet** — Mermaid loads from jsDelivr.
+This is the one agentbox skill that needs **internet** — Mermaid loads from jsDelivr.
 The tag is pinned to `mermaid@11.15.0` with a Subresource-Integrity hash and
 `crossorigin`. If you change the version, recompute the hash:
 ```

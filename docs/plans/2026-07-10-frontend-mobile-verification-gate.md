@@ -12,7 +12,7 @@
 
 - Work on branch `design/frontend-mobile-gate` (already exists; spec is committed on it).
 - All names kebab-case; agents are flat `*.md` files at `plugins/agentbox/agents/` (never inside `.claude-plugin/`).
-- Commit identity is enforced by `.githooks/pre-commit` — author must be `liemle3893 <33980597+liemle3893@users.noreply.github.com>`. If a commit is rejected, run the three `git config` lines from CONTRIBUTING.md §Commit identity; do not bypass the hook.
+- Commit identity is enforced by `.githooks/pre-commit` — author must be `duythien0912 <33980597+duythien0912@users.noreply.github.com>`. If a commit is rejected, run the three `git config` lines from CONTRIBUTING.md §Commit identity; do not bypass the hook.
 - **Do NOT edit `plugins/agentbox/skills/conductor/scripts/scaffold-workflow.cjs` or any conductor skill file.** Generator changes go only into `feedback/conductor.jsonl` (Task 3).
 - `feedback/conductor.jsonl` is clean as of the merged whetstone run #23 (its former pending batch landed); Task 3 appends one line and commits it on this branch.
 - `claude plugin validate .` must pass before every commit that touches `plugins/`.
@@ -142,7 +142,7 @@ Expected: validation passes (no schema errors; the new agent is listed/loaded wi
 
 ```bash
 git add plugins/agentbox/agents/agentbox-web-verifier.md README.md
-git commit -m "feat(lirbox): add agentbox-web-verifier agent (web half of frontend gate)"
+git commit -m "feat(agentbox): add agentbox-web-verifier agent (web half of frontend gate)"
 ```
 
 ---
@@ -262,7 +262,7 @@ Expected: passes.
 
 ```bash
 git add plugins/agentbox/agents/agentbox-mobile-verifier.md README.md
-git commit -m "feat(lirbox): add agentbox-mobile-verifier agent (mobile half of frontend gate)"
+git commit -m "feat(agentbox): add agentbox-mobile-verifier agent (mobile half of frontend gate)"
 ```
 
 ---
@@ -328,7 +328,7 @@ git commit -m "feedback: file frontend-gate-phase (conductor) + agent-file-surfa
 **Files:**
 - Create (scratch only, never committed): `$SCRATCHPAD/webverify-dogfood/{index.html,package.json,playwright.config.js}`
 
-Where `$SCRATCHPAD` = the session scratchpad directory (see the system prompt's Scratchpad Directory; for this session `/private/tmp/claude-502/-Users-thiennd-Documents-git-Personal-lirbox/8547fb51-4ab2-4272-947c-280ed9ab24f5/scratchpad`).
+Where `$SCRATCHPAD` = the session scratchpad directory (see the system prompt's Scratchpad Directory; for this session `/private/tmp/claude-502/-Users-thiennd-Documents-git-Personal-agentbox/8547fb51-4ab2-4272-947c-280ed9ab24f5/scratchpad`).
 
 **Interfaces:**
 - Consumes: agent `agentbox-web-verifier` (Task 1) via `claude -p --plugin-dir`; its `## WEB VERIFY:` output contract and manifest path.
@@ -361,7 +361,7 @@ Expected: install succeeds, chromium downloaded.
 
 ```bash
 cd "$SCRATCHPAD/webverify-dogfood"
-claude -p --plugin-dir /Users/thiennd/Documents/git/Personal/lirbox/plugins/agentbox \
+claude -p --plugin-dir /Users/thiennd/Documents/git/Personal/agentbox/plugins/agentbox \
   --permission-mode auto \
   "Use the Agent tool to dispatch the agentbox-web-verifier agent on the app in the current directory. Criteria: [{id: c1, text: 'GET / shows an h1 reading Dogfood', tier: checkable}, {id: c2, text: 'the page renders acceptably at a mobile viewport', tier: judged}]. App start command: python3 -m http.server 4173. Relay the agent's full report verbatim."
 ```
@@ -400,7 +400,7 @@ No commit (scratch only).
 
 ```bash
 mkdir -p "$SCRATCHPAD/mobileverify-smoke" && cd "$SCRATCHPAD/mobileverify-smoke"
-claude -p --plugin-dir /Users/thiennd/Documents/git/Personal/lirbox/plugins/agentbox \
+claude -p --plugin-dir /Users/thiennd/Documents/git/Personal/agentbox/plugins/agentbox \
   --permission-mode auto \
   "Use the Agent tool to dispatch the agentbox-mobile-verifier agent on the app in the current directory. Criteria: [{id: m1, text: 'the home screen shows a greeting', tier: judged}]. Relay the agent's full report verbatim."
 ```
@@ -421,7 +421,7 @@ The full-positive mobile dogfood needs a booted iOS Simulator plus an RN/Flutter
 ```bash
 npx create-expo-app "$SCRATCHPAD/dogfood-rn" && cd "$SCRATCHPAD/dogfood-rn"
 npx expo run:ios          # builds + boots the simulator
-claude -p --plugin-dir /Users/thiennd/Documents/git/Personal/lirbox/plugins/agentbox \
+claude -p --plugin-dir /Users/thiennd/Documents/git/Personal/agentbox/plugins/agentbox \
   --permission-mode auto \
   "Use the Agent tool to dispatch the agentbox-mobile-verifier agent on the app in the current directory. Criteria: [{id: m1, text: 'the home screen shows the default Expo greeting', tier: judged}]. Relay the agent's full report verbatim."
 ```
@@ -442,7 +442,7 @@ Expected: `gatePassed=true`, screenshots under `implementation-notes/frontend-ev
 - [ ] **Step 1: Full validation sweep**
 
 ```bash
-cd /Users/thiennd/Documents/git/Personal/lirbox
+cd /Users/thiennd/Documents/git/Personal/agentbox
 claude plugin validate .
 git status --short
 git log --oneline main..HEAD
@@ -452,4 +452,4 @@ Expected: validate passes; working tree clean apart from the untracked `plan-che
 
 - [ ] **Step 2: Report**
 
-Report to the user: the branch name, the two agents, the committed feedback id `frontend-gate-phase`, the dogfood results, and the manual simulator follow-up. Do NOT merge, do NOT push, do NOT open a PR unless asked (note: PR creation requires the `liemle3893` gh account per memory — the default EMU account cannot).
+Report to the user: the branch name, the two agents, the committed feedback id `frontend-gate-phase`, the dogfood results, and the manual simulator follow-up. Do NOT merge, do NOT push, do NOT open a PR unless asked (note: PR creation requires the `duythien0912` gh account per memory — the default EMU account cannot).

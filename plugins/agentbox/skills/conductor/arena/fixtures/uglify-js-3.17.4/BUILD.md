@@ -20,7 +20,7 @@ cd /tmp/fixture-src
 npm install --no-save --no-audit --no-fund acorn@8.7.1 semver@6.3.0
 /bin/rm -rf node_modules/.bin node_modules/.package-lock.json package-lock.json
 grep -v 'node_modules' .gitignore > .gitignore.tmp && mv .gitignore.tmp .gitignore   # the line is "/node_modules/"
-node <lirbox>/plugins/agentbox/skills/arena/scripts/make-fixture.cjs \
+node <agentbox>/plugins/agentbox/skills/arena/scripts/make-fixture.cjs \
   --task uglify-corner-cases --dir /tmp/fixture-build \
   --fixture uglify-js-3.17.4 --src /tmp/fixture-src
 ```

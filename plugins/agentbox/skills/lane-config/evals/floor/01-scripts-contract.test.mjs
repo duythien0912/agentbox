@@ -24,7 +24,7 @@ for (const sub of ['detect', 'show', 'init', 'validate', 'set-profile', 'set-lan
 // failing at them.
 //
 // What actually has to hold: a model is never guessed. init may declare the
-// lirbox roles on a harness it can SEE installed, and must leave the model empty
+// agentbox roles on a harness it can SEE installed, and must leave the model empty
 // for one whose model ids it does not know.
 const initBlock = cfg.slice(cfg.indexOf('\ninit)'), cfg.indexOf('\nvalidate)'));
 if (!/command -v/.test(initBlock)) {

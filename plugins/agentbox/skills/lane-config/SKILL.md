@@ -21,7 +21,7 @@ CFG=${CLAUDE_PLUGIN_ROOT}/skills/lane-config/scripts/orch-config.sh
 
 $CFG detect  [repo]      what is measurable here (package manager, cpus, discovered profiles)
 $CFG show    [repo]      current config, or absent
-$CFG init    [repo]      a WORKING config from detect: the three lirbox roles on whichever
+$CFG init    [repo]      a WORKING config from detect: the three agentbox roles on whichever
                          harness is installed, base_branch, baseline, gate_profile. Every
                          value is a default it announces, not a decision it hides.
 $CFG validate [repo]     exit 1 listing exactly what is unusable
@@ -48,7 +48,7 @@ $CFG set-setup  [--install C] [--build C] [--test C] [--baseline S] [repo]
 Ask these together, not one per turn. Offer the recommendation; take the answer.
 
 - **Which profiles, and which are cheap vs capable?** `init` starts you with `planner`,
-  `verifier` and `builder` on the lirbox agents of the same name. For each: harness
+  `verifier` and `builder` on the agentbox agents of the same name. For each: harness
   (`claude` / `opencode` / `omp` / `jcode`) and exact model. Recommend capable for verifiers,
   criteria authoring and adjudication; cheap otherwise — spend capability where a wrong answer
   is unrecoverable or invisible, not where it is expensive.
@@ -63,7 +63,7 @@ Ask these together, not one per turn. Offer the recommendation; take the answer.
   `--thinking`). The opencode and jcode entries herdr starts have none and ignore unknown flags
   silently, so `set-profile` refuses that combination rather than store what cannot take effect.
 - **jcode is declarable but not startable**: `herdr agent start --kind jcode` answers
-  "unsupported interactive agent kind". lirbox knows its flags and will use them the day herdr
+  "unsupported interactive agent kind". agentbox knows its flags and will use them the day herdr
   adds it; until then `orch-lane.sh start` refuses and names herdr as the blocker.
 - **Default profile** for a lane that names none.
 - **Lane cap** — `detect` suggests cpus/2, and `init` writes it. Confirm or override.

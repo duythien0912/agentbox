@@ -1,5 +1,5 @@
 [task]
-name = "lirbox/plan-check__execution-shape"
+name = "agentbox/plan-check__execution-shape"
 version = "1.0.0"
 description = "plan-check skill task: verify a plan whose declared task graph contradicts its own Files: lists and step prose (undeclared edge + undeclared file collision)"
 

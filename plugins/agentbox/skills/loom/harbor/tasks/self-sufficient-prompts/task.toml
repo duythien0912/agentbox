@@ -25,7 +25,7 @@
 # directly. Do not read a green here as covering it.
 
 [task]
-name = "lirbox/loom__self-sufficient-prompts"
+name = "agentbox/loom__self-sufficient-prompts"
 version = "1.0.0"
 description = "loom must author a graph whose work-node prompts are actionable by a worker that sees nothing else"
 
