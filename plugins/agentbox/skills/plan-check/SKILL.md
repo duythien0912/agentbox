@@ -49,71 +49,46 @@ as conditions-to-clear. A verdict emitted with an unasked askable question is in
 
 ## Workflow
 
-1. **Ingest & classify** the plan: `ops` / `code` / `mixed`. State it back — it routes §3.
-   Capture the plan's **goal** in its own terms (what it is trying to achieve, not what it does);
-   if it states none, say so and adjudicate that as an `UNSTATED-ASSUMPTION`.
-2. **Decompose** into atomic checkable propositions — not the plan as a blob:
-   preconditions, each step's claimed effect, ordering & hidden dependencies,
-   expected outcomes, rollback, and the **unstated assumptions** it drags in.
-   Where the plan declares a task graph, invert its own `Files:` lists into a
-   file → tasks table and test the declared edges against it: a file claimed by two
-   tasks, or an edge stated only in step prose, is a proposition (see
-   `references/blind-spot.md` → *Execution shape*).
-3. **Verify from evidence — demand references, not assertions** ("show me the doc /
-   the state / the code," never "trust me"). *Ops:* web docs, version release notes,
-   deprecations, known-issue/CVE trackers for the stated version. *Code:* repo
-   read/grep/AST — do the referenced files/funcs/APIs exist, fit the real types and
-   callers, and match the plan's model of current behavior?
-4. **Blind-spot pass** — go beyond the plan's claims; hunt unknown-unknowns via the
-   per-type checklists in `${CLAUDE_PLUGIN_ROOT}/skills/plan-check/references/blind-spot.md`.
-   Highest-value step; don't skip.
-5. **Interrogation gate (BLOCKS the verdict).** Before step 7, enumerate every
-   proposition still `UNVERIFIED`. For each one that is **askable** — resolvable by the
-   human, i.e. NOT tagged `needs: run on target` — you MUST stop and ask, one question at
-   a time, hardest first where the answer flips the verdict. **Do not proceed to the
-   verdict while an askable `UNVERIFIED` remains open.** Only `needs: run on target` items
-   (answerable solely by touching a live system you weren't given) pass unasked, as
-   conditions-to-clear. Rules in
-   `${CLAUDE_PLUGIN_ROOT}/skills/plan-check/references/interrogation.md`.
-6. **Adjudicate** — every proposition gets a **quadrant** + **status**: `VERIFIED` ·
-   `REFUTED` · `UNVERIFIED` (name what would resolve it) · `UNSTATED-ASSUMPTION` ·
-   `BLIND-SPOT-RISK`. **One row is mandatory** (`data-goal-coverage`, machine-checked): *if every
-   DoD criterion were met, would the stated goal be achieved?*
-7. **Verdict** — `NO-GO` if any `REFUTED` on a critical path; else
-   `GO-WITH-CONDITIONS` if any open item (`UNVERIFIED` / `BLIND-SPOT-RISK`) remains;
-   else `GO`. Every open item becomes a condition-to-clear. Tag each open row
-   `fix: mechanical` (the repair is determined by the finding) or `fix: needs-decision`.
-   A `NO-GO` must state, per `REFUTED` row, **what would have to change to clear it** —
-   a verdict with no route is a dead end, not a finding.
-8. **Emit the report** — copy `${CLAUDE_PLUGIN_ROOT}/skills/plan-check/assets/template.html`
-   to `./plan-check-<slug>.html` and fill it. **Lead with the verdict-changing risks**
-   (refutations, blind-spots, conditions); mechanically-verified rows last. Keep the
-   `<style>` block unchanged.
-   Carry step 7's disposition onto **every open row** — `<span class="fix">fix: mechanical</span>`
-   or `fix: needs-decision`; machine-checked, and drop the span on rows that are not open.
-   Fill the **Definition of done** section AND its machine-readable twin
-   (`<script type="application/json" id="dod">`): extract the plan's success criteria, refine
-   each to `checkable` (a concrete command, exit 0 = met) or `judged` (needs cited evidence),
-   never dropping plan-stated ACs. If the plan stated none, derive them — and the missing DoD
-   is a `BLIND-SPOT-RISK` (so the verdict can be at best GO-WITH-CONDITIONS).
-   Fill **`#taskgraph`** the same way — the plan's execution shape, machine-checked. Each edge is
-   `needs` (this task needs the other's *output*) or `contention` (both write one file: a merge
-   cost, not an order, since each task gets its own worktree) and carries a `why`. `levels` is
-   **derived** — validate.mjs recomputes it from the `needs` edges — so you can neither invent
-   serialization nor claim parallelism the edges forbid. No task graph → all three arrays empty.
-9. **Verify the output** — must exit 0; fix and re-run until green:
+1. **Ingest & classify** the plan: `ops`, `code`, or `mixed`. State classification explicitly.
+   - Capture the plan's **goal** in its own terms (the intended outcome, not the implementation steps).
+   - If the plan lacks a stated goal, report it and adjudicate as an `UNSTATED-ASSUMPTION`.
+2. **Decompose into atomic propositions**:
+   - Trace preconditions, claimed effects, ordering, hidden dependencies, rollback, and unstated assumptions.
+   - For plans with task graphs, invert the declared `Files:` lists into a file → tasks map.
+   - Treat a file claimed by two tasks or an edge found only in step prose as an explicit proposition (see `references/blind-spot.md`).
+3. **Verify from evidence — demand references, not assertions**:
+   - *Ops*: Official docs, version release notes, deprecations, CVE trackers.
+   - *Code*: Grep/AST analysis — verify functions, APIs, types, and callers exist and match current behavior.
+4. **Blind-spot pass**: Hunt unknown-unknowns using checklists in `references/blind-spot.md`.
+5. **Interrogation gate (BLOCKS the verdict)**:
+   - Enumerate every proposition still `UNVERIFIED`.
+   - For askable questions (not tagged `needs: run on target`), prompt the user one by one, hardest first.
+   - Do not emit a verdict while an askable `UNVERIFIED` item remains open.
+   - Only `needs: run on target` items may remain open as conditions-to-clear.
+6. **Adjudicate**: Assign each proposition a quadrant and status (`VERIFIED`, `REFUTED`, `UNVERIFIED`, `UNSTATED-ASSUMPTION`, `BLIND-SPOT-RISK`).
+   - **Mandatory coverage row (`data-goal-coverage`)**: *if every DoD criterion were met, would the stated goal be achieved?*
+7. **Formulate verdict**:
+   - `NO-GO`: Any `REFUTED` proposition on a critical path. State what must change to clear each refutation.
+   - `GO-WITH-CONDITIONS`: Open items (`UNVERIFIED` or `BLIND-SPOT-RISK`) remain. Every open item becomes a condition to clear.
+   - `GO`: All propositions verified.
+   - Tag each open item with a disposition: `fix: mechanical` or `fix: needs-decision`.
+8. **Emit the report**: Copy `${CLAUDE_PLUGIN_ROOT}/skills/plan-check/assets/template.html` to `./plan-check-<slug>.html`.
+   - **Order**: Lead with verdict-changing risks (refutations, blind spots, conditions); verified rows last. Preserve `<style>`.
+   - **Fix disposition**: Carry step 7's disposition onto **every open row** using `<span class="fix">fix: mechanical</span>` or `fix: needs-decision` (machine-checked). Drop the span on non-open rows.
+   - **Definition of done (`#dod`)**: Extract success criteria into `#dod` JSON script (`checkable` command exit 0, or `judged` with cited evidence). A plan with no stated criteria derivation receives `BLIND-SPOT-RISK`.
+   - **Execution task graph (`#taskgraph`)**: Encode edges as `needs` (output dependency) or `contention` (shared write path). `levels` is **derived** from `needs` edges by validate.mjs, not asserted manually. If no graph exists, supply empty arrays.
+9. **Verify output artifact**:
    ```bash
    node ${CLAUDE_PLUGIN_ROOT}/skills/plan-check/assets/validate.mjs ./plan-check-<slug>.html
    ```
-10. **Offer autofix — never automatic.** Apply only `fix: mechanical` rows. Rules:
-    `${CLAUDE_PLUGIN_ROOT}/skills/plan-check/references/autofix.md`.
-    - The input plan is **never modified** — write a sibling `<plan>.autofix.md`.
-    - An applied fix invalidates the report: re-run steps 3–6 on every touched row, re-emit,
-      then recompute the verdict.
-    - `REFUTED` is never autofixed, so autofix cannot clear a `NO-GO` — only shrink it.
-11. **Offer the handoff** — offer to launch `deep-understanding` on the risky
-    assumptions so you internalize what could break, or `plan-deck` to re-author against
-    the `REFUTED` rows. Don't auto-run either.
+10. **Offer autofix (never automatic)**:
+    - Apply only to `fix: mechanical` rows per `references/autofix.md`.
+    - The input plan is **never modified**; write fixes to a sibling `<plan>.autofix.md`.
+    - Re-run verification (steps 3–6) on touched rows and recompute the verdict.
+    - Do not apply autofix to `REFUTED` rows.
+11. **Offer handoffs**:
+    - Offer `deep-understanding` to internalize critical risks.
+    - Offer `plan-deck` to re-author against `REFUTED` rows.
 
 ## Quality bar
 

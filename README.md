@@ -1,124 +1,130 @@
-# agentbox
+# Build developer workflows with Agentbox
 
-duythien0912's personal [Claude Code](https://docs.claude.com/en/docs/claude-code) plugin marketplace.
+Agentbox provides visual generators, durable orchestration loops, and eval-gated optimization engines for Claude Code and Oh My Pi (omp). You get 19 modular skills and 10 specialized agents to trace code paths, diagram architectures, and automate multi-agent execution.
 
-A modular set of visual generators, orchestration loops, and eval/optimization engines for Claude Code.
+## Install Agentbox
 
-## Install
+Install Agentbox directly into your preferred environment using one command.
 
 ### Claude Code
 
-Install from the marketplace:
+Add the marketplace and install the package:
 
 ```text
 /plugin marketplace add duythien0912/agentbox
 /plugin install agentbox@agentbox
 ```
 
-### Oh My Pi (omp)
+### Oh My Pi
 
-Link skills & agents into your `~/.config/omp/` for use in any project:
+Link skills and agents into your local `~/.config/omp/` directory:
 
 ```bash
 bash scripts/setup-omp.sh
 ```
 
-Check status: `bash scripts/setup-omp.sh --status`
+Check the symlink status at any time:
 
-## Quick Start by Job-To-Be-Done (JTBD)
+```bash
+bash scripts/setup-omp.sh --status
+```
 
-| What do you want to do? | Recommended Command / Prompt | Output / Benefit |
-|---|---|---|
-| Review or explain a PR | `write up PR <N>` | Interactive file-by-file HTML writeup |
-| Trace logic or branching pipeline | `flowchart the <process>` | Interactive Mermaid flowchart |
-| Sequence diagram service interaction | `sequence-diagram the <flow>` | Time-ordered sequence diagram |
-| C4 architectural landscape | `C4 model of <system>` | Multi-view architectural diagram |
-| Ship multi-subagent feature with resume | `implement <spec> with resume` | Crash-safe conductor workflow |
-| Pre-flight test a plan for blindspots | `plan-check @PLAN.md` | GO/NO-GO audit with code evidence |
-| Benchmark or hill-climb a metric | `make <target> faster` | Automated hill-climbing PR via prospector |
-| Not sure what to pick? | `/guide` or `how do I use agentbox` | Interactive concierge router |
+## Select a workflow by task
 
-## Skills Catalog
+Choose the recommended command for your objective:
 
-The marketplace ships 19 skills; key ones below:
+| Your objective | Recommended prompt | Output deliverable |
+| :--- | :--- | :--- |
+| Explain a pull request | `write up PR <N>` | Interactive HTML walkthrough |
+| Trace branching logic | `flowchart the <process>` | Interactive Mermaid flowchart |
+| Diagram service communication | `sequence-diagram the <flow>` | Time-ordered sequence diagram |
+| Map system architecture | `C4 model of <system>` | Multi-view LikeC4 diagram |
+| Ship multi-agent features with resume | `implement <spec> with resume` | Crash-resilient conductor workflow |
+| Audit an implementation plan | `plan-check @PLAN.md` | GO or NO-GO verification report |
+| Hill-climb a numeric metric | `make <target> faster` | Optimization pull request via prospector |
+| Find the right skill | `/guide` or `how do I use agentbox` | Interactive concierge router |
 
-| Skill | What it does |
-|---|---|
-| **`guide`** | Concierge router: maps goals to agentbox skills, suggests commands, and explains combos. |
-| **`pr-writeup`** | Converts PRs into self-contained HTML writeups (TL;DR, file tour, tests, rollout). |
-| **`plan-deck`** | Turns specs into implementation plans (timeline, data-flow, mockups, risks). |
-| **`codewalk`** | Walks a code path into an HTML guide with file:line refs and gotchas. |
-| **`flowchart`** | Creates interactive Mermaid flowcharts with per-node details (needs internet/CDN). |
-| **`component-diagram`** | Interactive component diagrams with boundaries, typed deps, and clickable panels (needs CDN). |
-| **`sequence-diagram`** | Interactive time-ordered sequence diagrams with step-driven detail (needs CDN). |
-| **`c4-model`** | Generates LikeC4 multi-view HTML from a `.c4` source; runs in a throwaway Docker container (needs docker, ~1 GB first pull). |
-| **`deep-understanding`** | Interactive tutor: quizzes and guides until mastery of a PR/change/subsystem. |
-| **`conductor`** | Durable workflow runner with crash/resume, isolation, gates, and cost reporting for long multi-agent runs. |
-| **`prospector`** | Hill-climb a numeric metric with a correctness gate; keeps only strict improvements and opens a PR (never auto-merges). |
-| **`whetstone`** | Overnight eval-gated improver: grinds a backlog, applies per-item checks, optionally compacts, and opens a PR. |
-| **`arena`** | Reproducible pairwise leaderboard: judges conductor outputs across fixtures and emits a ranking, then opens a PR. |
-| **`loom`** | Graph-shaped delivery: fork/rejoin work with invariants, preview and edit in-browser before launch. |
-| **`lanes`** | External-agent execution model with append-only JSON store, DuckDB views, and tools to detect/recompute state drift. |
-| **`lane-config`** | Manage per-repo orchestration configs: harness, model effort, caps, timeouts; validated by subcommands (`detect`,`init`,`validate`). |
-| **`skill-lint`** | Analyzes SKILL.md for verbosity, missing tags, weak triggers, oversized assets; reports findings (does not edit). |
-| **`plan-check`** | Pre-flight audits plans against code/docs across 4 quadrants and emits a GO/GO-WITH-CONDITIONS/NO-GO HTML report. |
-| **`feedback`** | Converts user feedback into a redacted GitHub issue on `duythien0912/agentbox` to seed `whetstone` runs. Invoked by `/feedback`. |
+## Skills catalog
 
-## Agents
+The marketplace ships 19 skills organized by category:
 
-Subagents live under `plugins/agentbox/agents/`: public subagents for direct use and automated gate workers spawned by conductor/lanes.
+| Skill | Description |
+| :--- | :--- |
+| **`guide`** | Concierge router: maps tasks to matching skills and agents. |
+| **`pr-writeup`** | Generates self-contained HTML pull request tours with test plans. |
+| **`plan-deck`** | Converts specifications into interactive HTML implementation decks. |
+| **`codewalk`** | Documents code execution paths with file and line references. |
+| **`flowchart`** | Renders interactive Mermaid diagrams with node detail panels. |
+| **`component-diagram`** | Diagrams component boundaries and typed interface dependencies. |
+| **`sequence-diagram`** | Visualizes message exchanges with step-by-step inspector panels. |
+| **`c4-model`** | Renders LikeC4 architecture diagrams inside a containerized renderer. |
+| **`deep-understanding`** | Quizzes and guides you until you master a diff or subsystem. |
+| **`conductor`** | Executes multi-phase agent workflows with crash-resilience and gates. |
+| **`prospector`** | Hill-climbs numeric code metrics and opens a pull request. |
+| **`whetstone`** | Resolves skill backlogs overnight using frozen test checks. |
+| **`arena`** | Benchmarks conductor outputs across fixtures to produce a leaderboard. |
+| **`loom`** | Coordinates graph-shaped workflows with verified invariants. |
+| **`lanes`** | Manages external agent execution with an append-only ledger. |
+| **`lane-config`** | Configures model effort, lane concurrency limits, and timeouts. |
+| **`skill-lint`** | Audits skill word budgets, structural tags, and trigger descriptions. |
+| **`plan-check`** | Audits technical plans against codebase evidence before execution. |
+| **`feedback`** | Converts user feedback into scrubbed GitHub issue reports. |
 
-### Directly Usable Subagents (Public)
+## Agents catalog
 
-Invoke these for scoping, building, verifying, and reviewing:
+Agentbox includes 10 subagents located in `plugins/agentbox/agents/`.
 
-| Agent | Role |
-|---|---|
-| **`agentbox-planner`** | Scopes goals into executable acceptance criteria; never implements. |
-| **`agentbox-builder`** | Implements a scoped slice in a worktree; stops at first red. |
-| **`agentbox-verifier`** | Verifies a lane result at a SHA; reports failures and numbers; does not fix. |
-| **`agentbox-code-reviewer`** | Reviews changed code and fixes Critical/High issues while keeping the build green. |
+### Public agents
 
-### Automated Gate Workers (Auto-spawned by Conductor/Lanes)
+Invoke these agents directly for scoping, building, verifying, and reviewing:
 
-Automatically enforce tests, docs, frontend verification, and multi-pane sessions:
+| Agent | Responsibilities |
+| :--- | :--- |
+| **`agentbox-planner`** | Decomposes goals into code slices and acceptance criteria. |
+| **`agentbox-builder`** | Implements a scoped slice in an isolated worktree. |
+| **`agentbox-verifier`** | Verifies results at a commit hash using paired failure proofs. |
+| **`agentbox-code-reviewer`** | Resolves Critical and High findings in a single review pass. |
 
-| Agent | Role |
-|---|---|
-| **`agentbox-test-writer`** | Writes failing tests from acceptance criteria (RED-first). |
-| **`agentbox-tryve-enhancer`** | Improves coverage by focusing on error paths, boundaries, auth, and concurrency from the diff. |
-| **`agentbox-docs-writer`** | Adds concise implementation summaries to `docs/changes/` from diffs and notes. |
-| **`agentbox-web-verifier`** | Writes Playwright E2E specs, captures per-viewport evidence; failures never silently pass. |
-| **`agentbox-mobile-verifier`** | Detects RN/Flutter/native and writes Maestro/Appium flows; falls back to `simctl`/`adb` evidence capture. |
-| **`agentbox-herdr-orchestrator`** | Runs multi-agent Herdr sessions: scopes work, sets success criteria, delegates implementor/verifier panes, adjudicates reports, and pushes commits. Never edits or trusts self-reports. Pairs with `lanes`. |
+### Automated gate workers
 
-## Common Prompts
+Conductor and lanes dispatch these workers automatically during workflow execution:
 
-Invoke skills by describing the task:
+| Worker | Responsibilities |
+| :--- | :--- |
+| **`agentbox-test-writer`** | Authors failing acceptance tests before implementation begins. |
+| **`agentbox-tryve-enhancer`** | Generates boundary, error path, auth, and concurrency tests. |
+| **`agentbox-docs-writer`** | Records architectural changes into `docs/changes/`. |
+| **`agentbox-web-verifier`** | Runs Playwright tests and captures viewport screenshots. |
+| **`agentbox-mobile-verifier`** | Executes Maestro or Appium flows on mobile simulators. |
+| **`agentbox-herdr-orchestrator`** | Coordinates multi-agent sessions across external panes. |
+
+## Common prompt examples
+
+Trigger skills by describing what you want to achieve:
 
 ```text
 /guide
 write up PR 1059
-make a plan-deck for <spec/task>
+make a plan-deck for <spec>
 codewalk the auth flow
 flowchart the deploy pipeline
 diagram the components of <service>
 sequence-diagram the login flow
-C4 model of <system>         # needs docker
+C4 model of <system>
 help me deeply understand PR 1059
 plan-check @PLAN.md
-implement <plan/spec> with resume
+implement <spec> with resume
 make the /search endpoint faster
 improve the flowchart skill
 which conductor config wins
 which skills are too long?
 ```
 
-Skills resolve under `agentbox:` (e.g. `agentbox:guide`, `agentbox:pr-writeup`, `agentbox:conductor`, `agentbox:prospector`, `agentbox:whetstone`, `agentbox:arena`, `agentbox:skill-lint`, `agentbox:plan-check`).
+Skills resolve under the `agentbox:` namespace, such as `agentbox:conductor` or `agentbox:plan-check`.
 
-## Test locally (no install)
+## Test locally without installing
 
-Run from a clone without registering the marketplace:
+Run Agentbox directly from a local clone:
 
 ```bash
 git clone https://github.com/duythien0912/agentbox
@@ -127,32 +133,34 @@ claude plugin validate .
 claude --plugin-dir ./plugins/agentbox
 ```
 
-Or add the local checkout as a marketplace:
+You can also register the local directory as a marketplace source:
 
 ```text
 /plugin marketplace add ./path/to/agentbox
 ```
 
-## Updating
+## Update Agentbox
 
-agentbox tracks the git commit SHA (no pinned version). Push commits, then run:
+Agentbox tracks the Git commit hash directly. Pull new commits and run:
 
 ```text
 /plugin marketplace update agentbox
 ```
 
-## Guides
+## Explore guides
 
-- [Making a skill whetstone-ready](./docs/whetstone-ready.md) — the floor + acceptance-check scaffolding.
-- [Skill-improvement cookbook](./docs/skill-improvement-cookbook.md) — scored tasks → harvest failures → `whetstone` → auto-PR example with metrics.
-- [`skill-train` recipe](./plugins/agentbox/skills/whetstone/references/scored-tasks.md) — use `prospector` to hill-climb task pass-rate.
-- [Running the arena](./docs/arena-guide.md) — add fixtures, compare conductor versions, read the leaderboard; includes gotchas.
-- [SkillOpt exploration](./docs/skillopt-exploration.md) — rationale and empirical validation of controls.
+Read the documentation to learn specific workflows:
 
-## Extending
+- [Make a skill whetstone-ready](./docs/whetstone-ready.md): Learn the floor and acceptance-check setup.
+- [Skill-improvement cookbook](./docs/skill-improvement-cookbook.md): Harvest failures and automate pull requests.
+- [Task scoring recipe](./plugins/agentbox/skills/whetstone/references/scored-tasks.md): Optimize task pass rates with prospector.
+- [Run the arena](./docs/arena-guide.md): Add fixtures and compare conductor outputs.
+- [SkillOpt exploration](./docs/skillopt-exploration.md): Review empirical validation data.
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to add a skill, agent, or plugin.
+## Contribute
+
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) to add a skill, agent, or plugin package.
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT License. Details in [LICENSE](./LICENSE).

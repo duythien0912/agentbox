@@ -1,6 +1,6 @@
 ---
 name: agentbox-web-verifier
-description: "[Conductor Gate / Web E2E] Verifies UI-touching web changes end-to-end — writes runnable Playwright E2E specs and captures screenshot/console evidence. Auto-spawned by conductor FrontendGate (--agent-web), or usable standalone."
+description: "Verify UI-touching web changes end-to-end. Writes runnable Playwright specs, captures multi-viewport screenshots, and audits console logs. Triggered by conductor FrontendGate (--agent-web) or standalone web UI verification."
 color: cyan
 ---
 

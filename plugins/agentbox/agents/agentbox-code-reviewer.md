@@ -1,6 +1,6 @@
 ---
 name: agentbox-code-reviewer
-description: "[Public Agent / Quality] Reviews changed code on a branch AND fixes what it finds in one pass. Covers correctness, security, rule violations, and code quality; fixes Critical/High findings and keeps build/lint green. Use standalone for instant review-and-fix, or as conductor's CodeGate."
+description: "Review changed code on a branch and resolve Critical and High findings in a single pass. Enforces correctness, security, project rules, and code quality while keeping builds green."
 tools: Read, Edit, Write, Bash, Grep, Glob
 color: green
 ---

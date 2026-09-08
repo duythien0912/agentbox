@@ -1,31 +1,33 @@
-# Public Plugins
+# Plugin packages
 
-This directory contains the canonical plugin package for **`agentbox`**, distributed through the Claude Code marketplace manifest at `.claude-plugin/marketplace.json`.
+This directory hosts the canonical plugin packages published by Agentbox. Claude Code discovers the package structure through the marketplace manifest located in the repository root.
 
-## Architecture: Single Source of Truth
+## Directory architecture
 
-All skills, agents, and hooks are authored and maintained directly in **`plugins/agentbox/`**:
+The core Agentbox plugin resides inside `plugins/agentbox/`, serving as the single source of truth for all skills, agents, and hooks:
 
 ```text
 plugins/
 └── agentbox/
     ├── .claude-plugin/      # Plugin manifest (plugin.json)
-    ├── agents/              # 10 subagents (agentbox-*.md)
+    ├── agents/              # 10 subagent definitions (agentbox-*.md)
     ├── hooks/               # Session hooks and policy guards
     ├── scripts/             # Internal runtime orchestrators
-    └── skills/              # 19 skills (each with SKILL.md, evals/, tests)
+    └── skills/              # 19 skills with tests and evals
 ```
 
 ## Installation
+
+Install the package directly into Claude Code:
 
 ```text
 /plugin marketplace add duythien0912/agentbox
 /plugin install agentbox@agentbox
 ```
 
-## Marketplace Manifest
+## Marketplace manifest configuration
 
-The marketplace entrypoint resides in `.claude-plugin/marketplace.json` at the repo root:
+The marketplace entrypoint is declared in `.claude-plugin/marketplace.json` at the repository root:
 
 ```json
 {
@@ -39,7 +41,8 @@ The marketplace entrypoint resides in `.claude-plugin/marketplace.json` at the r
 }
 ```
 
-Validate with:
+Validate the manifest schema using the Claude Code CLI:
+
 ```bash
 claude plugin validate .
 ```
